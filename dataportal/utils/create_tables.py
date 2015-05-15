@@ -19,39 +19,49 @@ def build_ztab_table():
 
     cursor = connection.cursor()
 
-    qid = 'qid_liw2007q51-s1'
+    # qid = 'qid_liw2007q51-s1'
+    #
+    # cursor.execute("Select table_name, column_name from information_schema.columns " +
+    #                "where lower(table_name) in " +
+    #                "(select lower(table_ids) from responses where responseID = " +
+    #                "( SELECT responseID FROM questions_responses_link where qid = %s)) " +
+    #                "and column_name != 'table_pk' and column_name != 'user_id' and " +
+    #                "column_name != 'date_time' and column_name != 'res_table_id'", [qid, ])
+    #
+    # ztab_from_qid = cursor.fetchall()
 
-    cursor.execute("Select table_name, column_name from information_schema.columns " +
-                   "where lower(table_name) in " +
-                   "(select lower(table_ids) from responses where responseID = " +
-                   "( SELECT responseID FROM questions_responses_link where qid = %s)) " +
-                   "and column_name != 'table_pk' and column_name != 'user_id' and " +
-                   "column_name != 'date_time' and column_name != 'res_table_id'", [qid, ])
-
-    ztab_from_qid = cursor.fetchall()
-
-    cursor.execute("select table_name from information_schema.tables where table_name = %s", [ztab_from_qid[0][0]])
+    cursor.execute("select table_name from information_schema.tables where table_name like %s limit 2", ['ztab%'])
     # max_value = cursor.fetchone()[0]
     ztab_tables = cursor.fetchall()
 
     print ztab_tables
 
     for table in ztab_tables:
+        print '\n'
+        print table
         cursor.execute("select column_name from information_schema.columns where table_name = %s " +
                        "and column_name != 'table_pk' and column_name != 'user_id' and " +
                        "column_name != 'date_time' and column_name != 'res_table_id'", [table[0],])
-        print cursor.fetchall()
+        column_headers = cursor.fetchall()
+
+        print [a[0] for a in column_headers]
 
         cursor.execute('select * from ' + table[0], [])
         # print cursor.fetchall()
 
         desc = cursor.description
+        # print pprint.pformat(desc)
         desc_dict = [
             dict(zip([col[0] for col in desc], row))
             for row in cursor.fetchall()
         ]
 
-        print pprint.pformat(desc_dict, indent=4)
+        # print pprint.pformat(desc_dict, indent=4)
+
+        for option in desc_dict:
+            for header in column_headers:
+                print header[0], option[header[0]]
+            print '\n'
 
     return True
 
