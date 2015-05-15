@@ -1,0 +1,5 @@
+
+{% for survey in dcs %}
+    <a href="{% url 'survey_metadata' survey.identifier %}">Click</a>
+    {{ survey.identifier }} : {{ survey.title }}<br>
+{% endfor %}
