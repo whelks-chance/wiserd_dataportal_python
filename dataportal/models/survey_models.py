@@ -2,8 +2,7 @@ from __future__ import unicode_literals
 
 from django.contrib.gis.db import models
 
-class ztabResponseOptions(models.Model):
-    identifier = models.CharField(primary_key=True, max_length=50)
+from dataportal.models.new_models import *
 
 
 class DcInfo(models.Model):

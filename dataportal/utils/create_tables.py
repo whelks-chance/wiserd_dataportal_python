@@ -1,5 +1,6 @@
 import os
 import pprint
+from django.db import connections
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wiserd.settings")
 
@@ -17,7 +18,7 @@ def build_ztab_table():
 
     from django.db import connection
 
-    cursor = connection.cursor()
+    cursor = connections['survey'].cursor()
 
     # qid = 'qid_liw2007q51-s1'
     #
@@ -30,7 +31,7 @@ def build_ztab_table():
     #
     # ztab_from_qid = cursor.fetchall()
 
-    cursor.execute("select table_name from information_schema.tables where table_name like %s limit 2", ['ztab%'])
+    cursor.execute("select table_name from information_schema.tables where table_name like %s limit 30", ['ztab%'])
     # max_value = cursor.fetchone()[0]
     ztab_tables = cursor.fetchall()
 
@@ -59,9 +60,9 @@ def build_ztab_table():
         # print pprint.pformat(desc_dict, indent=4)
 
         for option in desc_dict:
+            print '\n'
             for header in column_headers:
                 print header[0], option[header[0]]
-            print '\n'
 
     return True
 

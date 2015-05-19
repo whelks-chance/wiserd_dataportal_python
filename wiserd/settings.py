@@ -31,6 +31,8 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = (
+    'django.contrib.sites',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -38,7 +40,12 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dataportal',
-    'django.contrib.gis'
+    'django.contrib.gis',
+
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -70,6 +77,19 @@ TEMPLATES = [
     },
 ]
 
+TEMPLATE_CONTEXT_PROCESSORS = (
+    'django.contrib.auth.context_processors.auth',
+    'django.core.context_processors.debug',
+    'django.core.context_processors.i18n',
+    'django.core.context_processors.media',
+    'django.core.context_processors.static',
+    'django.core.context_processors.request',
+    'django.contrib.messages.context_processors.messages',
+
+    'allauth.account.context_processors.account',
+    'allauth.socialaccount.context_processors.socialaccount',
+)
+
 WSGI_APPLICATION = 'wiserd.wsgi.application'
 
 
@@ -79,15 +99,22 @@ WSGI_APPLICATION = 'wiserd.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'Geoportal',
+        'USER': 'dataportal',
+        'PASSWORD': 'd4t4p0rtalacce55',
+        'HOST': 'localhost'
+    },
+    'survey': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Survey_Data',
         'USER': 'dataportal',
         'PASSWORD': 'd4t4p0rtalacce55',
         'HOST': 'localhost'
     },
-    # 'default': {
-    #     'ENGINE': 'django.db.backends.sqlite3',
-    #     'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-    # }
+    'new': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'new_db.sqlite3'),
+    }
 }
 
 
@@ -104,12 +131,20 @@ USE_L10N = True
 
 USE_TZ = True
 
+SITE_ID = 4
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.8/howto/static-files/
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT = './dataportal/static/'
+
 TEMPLATE_DIRS = (
     os.path.join(BASE_DIR,  'templates'),
+)
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )

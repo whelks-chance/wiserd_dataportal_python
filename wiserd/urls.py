@@ -15,14 +15,36 @@ Including another URLconf
 """
 from django.conf.urls import include, url
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from dataportal import views
 
 urlpatterns = [
 
-    url(r'^$', views.index, name='index'),
+    url(r'^$', views.index, name='home'),
+    url(r'^about_us', views.index, name='about_us'),
+    url(r'^software', views.index, name='software'),
+    url(r'^help', views.index, name='help'),
+
+    url(r'^profile', views.index, name='user_profile_home'),
+    url(r'^login', views.login, name='account_login'),
+    url(r'^logout', views.logout, name='logout'),
+    url(r'^do_login', views.do_login, name='login.do_login'),
+    url(r'^signup', views.signup, name='signup'),
+    url(r'^do_signup', views.do_signup, name='signup.do_signup'),
+
+    url(r'^do_advanced_search', views.do_advanced_search, name='do_advanced_search'),
+    url(r'^search_advanced', views.search_advanced, name='search_advanced'),
+
+    url(r'^map_search', views.map_search, name='map_search'),
+
+    url(r'^data_autocomplete', views.data_autocomplete, name='data.autocomplete'),
+    url(r'^get_metadata', views.get_metadata, name='data.get_metadata'),
+
     url(r'^dc_info', views.dc_info, name='dc_info'),
 
     url(r'^survey_metadata/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
     url(r'^admin/', include(admin.site.urls)),
 ]
+
+urlpatterns += staticfiles_urlpatterns()

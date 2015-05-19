@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block content %}
+    <script>
+        $(document).ready(function () {
+            var map_height = window.innerHeight;
+            var header_height = $('#navbar_lv_header').height();
+
+            $('#map').css({height: map_height - header_height});
+
+            var map = L.map('map').setView([51.53181, -3.24687], 10);
+
+            L.tileLayer('http://i7.cscloud.cf.ac.uk/osmcarto/{z}/{x}/{y}.png?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+                maxZoom: 15,
+                id: 'your.mapbox.project.id',
+                accessToken: 'your.mapbox.public.access.token'
+            }).addTo(map);
+
+            function onMapClick(e) {
+                var popup = L.marker()
+                        .setLatLng(e.latlng)
+                        .setContent(e.latlng)
+                        .openOn(map);
+            }
+
+            map.on('click', onMapClick);
+
+            var featureGroup = L.featureGroup().addTo(map);
+
+            var drawControl = new L.Control.Draw({
+                edit: {
+                    featureGroup: featureGroup
+                },
+                draw: {
+                    polygon: true,
+                    polyline: false,
+                    rectangle: {
+                        shapeOptions : {
+                            color : '#888888'
+                        }
+                    },
+                    circle: true,
+                    marker: false
+                }
+            }).addTo(map);
+
+            map.on('draw:created', showPolygonArea);
+            map.on('draw:edited', showPolygonAreaEdited);
+
+            function showPolygonAreaEdited(e) {
+                e.layers.eachLayer(function(layer) {
+                    showPolygonArea({ layer: layer });
+                });
+            }
+            function showPolygonArea(e) {
+                featureGroup.clearLayers();
+                featureGroup.addLayer(e.layer);
+                e.layer.bindPopup((LGeo.area(e.layer) / 1000000).toFixed(2) + ' km<sup>2</sup>');
+                e.layer.openPopup();
+
+                var shape_geojson = e.layer.toGeoJSON();
+                console.log(shape_geojson);
+
+                console.log(shape_geojson['geometry']);
+                console.log(shape_geojson['properties']);
+                console.log(shape_geojson['type']);
+
+                alert(shape_geojson['geometry']['coordinates']);
+
+              var wkt = $.geo.WKT.stringify(shape_geojson['geometry']);
+
+                $.ajax({
+                    type: "POST",
+                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",
+                    data: {
+                        geography: wkt,
+                        start: 0,
+                        limit: 15,
+                        type: "Qual"
+                    },
+                    success: function(data) {
+                        alert(data);
+                    },
+                    error: function(xhr, textStatus, errorThrown) {
+                        console.log("Problem with category: "+errorThrown+xhr.status+xhr.responseText);
+                    }
+                });
+            }
+
+
+            var geojson = [{
+                "type": "Feature",
+                "properties": {
+                    "name": "Coors Field",
+                    "amenity": "Baseball Stadium",
+                    "popupContent": "This is where the Rockies play!"
+                },
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [-3.24687, 51.53181]
+                }
+            },
+                {
+                    "type": "Feature",
+                    "properties": {
+                        "name": "Coors Field",
+                        "amenity": "Baseball Stadium",
+                        "popupContent": "This is where the Rockies play!"
+                    },
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [[
+                            [ -3.24687, 51.53181],
+                            [ -3.24687, 50.53181],
+                            [ -4.24687, 51.53181]
+                        ]]
+                    }
+                }
+            ];
+
+            L.geoJson(geojson).addTo(map);
+        });
+
+
+
+    </script>
+
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+
+    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
+    <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
+    <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
+<script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js"></script>
+
+    {#    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.js'></script>#}
+    {#    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.css' rel='stylesheet' />#}
+
+
+    <div id="map" style="height: 180px;"></div>
+
+{% endblock %}
+
