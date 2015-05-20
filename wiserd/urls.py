@@ -41,10 +41,12 @@ urlpatterns = [
     url(r'^get_metadata', views.get_metadata, name='data.get_metadata'),
 
     url(r'^dc_info', views.dc_info, name='dc_info'),
-
     url(r'^survey_metadata/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
+    url(r'^spatial_search', views.spatial_search, name='spatial_search'),
+
     url(r'^admin/', include(admin.site.urls)),
+
 ]
 
 urlpatterns += staticfiles_urlpatterns()

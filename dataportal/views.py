@@ -1,10 +1,11 @@
 import json
 import pprint
 from django.contrib import auth
-from django.core import serializers
+from django.db import connections
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.template import RequestContext
+from django.views.decorators.csrf import csrf_exempt
 from dataportal import models
 
 
@@ -167,13 +168,48 @@ def do_advanced_search(request):
 
 def data_autocomplete(request):
     response_data = {}
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
 
 
 def get_metadata(request):
     response_data = {}
-    return HttpResponse(json.dumps(response_data), content_type="application/json")
+    return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
 
 
 def map_search(request):
     return render(request, 'map_search.html', {}, context_instance=RequestContext(request))
+
+
+@csrf_exempt
+def spatial_search(request):
+
+    geography = request.POST.get('geography', '')
+
+    response_data = {
+        'success': True
+        }
+
+    cursor = connections['survey'].cursor()
+
+    table_cols = "SELECT f_table_name, f_geometry_column FROM geometry_columns where f_table_schema = 'public'"
+    cursor.execute(table_cols)
+    tables = cursor.fetchall()
+    print tables
+
+    areas = []
+    for geoms in tables:
+        intersects = "SELECT area_name from " + geoms[0] + \
+        " WHERE ST_Intersects(ST_Transform(ST_GeometryFromText('" + geography + "', 27700), 4326)," + geoms[1] + ");"
+
+        cursor.execute(intersects)
+        area_name = cursor.fetchall()
+
+        print area_name
+        areas.append(area_name)
+
+    response_data['areas'] = areas
+
+    # cursor.execute("select table_name from information_schema.tables where table_name like %s limit 30", ['ztab%'])
+    # max_value = cursor.fetchone()[0]
+
+    return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")

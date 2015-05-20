@@ -49,6 +49,27 @@
             map.on('draw:created', showPolygonArea);
             map.on('draw:edited', showPolygonAreaEdited);
 
+            function convertPolygonToOS(shape_geojson){
+
+                var new_coordinates = [];
+                var new_geometry = {
+                        "type": "Polygon",
+                        "coordinates": [[]]
+                    };
+
+                for (var a = 0; a < shape_geojson['geometry']['coordinates'][0].length; a++) {
+                    var ll2 = new LatLng(shape_geojson['geometry']['coordinates'][0][a][1],
+                            shape_geojson['geometry']['coordinates'][0][a][0]);
+                    var os2 = ll2.toOSRef();
+                    var coords = os2.toString().replace('(', '').replace(')', '').split(',');
+                    new_coordinates.push(coords);
+                }
+
+                new_geometry['coordinates'] = [new_coordinates];
+
+                return new_geometry
+
+            }
             function showPolygonAreaEdited(e) {
                 e.layers.eachLayer(function(layer) {
                     showPolygonArea({ layer: layer });
@@ -61,19 +82,22 @@
                 e.layer.openPopup();
 
                 var shape_geojson = e.layer.toGeoJSON();
-                console.log(shape_geojson);
 
-                console.log(shape_geojson['geometry']);
-                console.log(shape_geojson['properties']);
-                console.log(shape_geojson['type']);
+{#                console.log(shape_geojson);#}
+{#                console.log(shape_geojson['geometry']);#}
+{#                console.log(shape_geojson['properties']);#}
+{#                console.log(shape_geojson['type']);#}
+{##}
+{#                alert(shape_geojson['geometry']['coordinates']);#}
 
-                alert(shape_geojson['geometry']['coordinates']);
+                var new_geojson = convertPolygonToOS(shape_geojson);
 
-              var wkt = $.geo.WKT.stringify(shape_geojson['geometry']);
+                var wkt = $.geo.WKT.stringify(new_geojson);
 
                 $.ajax({
                     type: "POST",
-                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",
+{#                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",#}
+                    url: "/spatial_search",
                     data: {
                         geography: wkt,
                         start: 0,
@@ -109,14 +133,14 @@
                         "amenity": "Baseball Stadium",
                         "popupContent": "This is where the Rockies play!"
                     },
-                    "geometry": {
-                        "type": "Polygon",
-                        "coordinates": [[
-                            [ -3.24687, 51.53181],
-                            [ -3.24687, 50.53181],
-                            [ -4.24687, 51.53181]
-                        ]]
-                    }
+{#                    "geometry": {#}
+{#                        "type": "Polygon",#}
+{#                        "coordinates": [[#}
+{#                            [ -3.24687, 51.53181],#}
+{#                            [ -3.24687, 50.53181],#}
+{#                            [ -4.24687, 51.53181]#}
+{#                        ]]#}
+{#                    }#}
                 }
             ];
 
@@ -134,6 +158,8 @@
     <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
     <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
 <script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js"></script>
+
+        <script type="text/javascript" src="{% static 'jscoord-1.1.1.js' %}"></script>
 
     {#    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.js'></script>#}
     {#    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.css' rel='stylesheet' />#}
