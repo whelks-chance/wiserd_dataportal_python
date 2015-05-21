@@ -4,10 +4,25 @@
 {% block content %}
     <script>
         $(document).ready(function () {
+
+            {#            $('#res_table').DataTable({#}
+            {#                serverSide: true,#}
+            {#                ajax: {#}
+            {#                    url: '/spatial_search',#}
+            {#                    type: 'POST',#}
+            {#                    data: {#}
+            {#                        geography: '',#}
+            {#                        start: 0,#}
+            {#                        limit: 15,#}
+            {#                        type: "Qual"#}
+            {#                    }#}
+            {#                }#}
+            {#            });#}
+
             var map_height = window.innerHeight;
             var header_height = $('#navbar_lv_header').height();
 
-            $('#map').css({height: map_height - header_height});
+            $('#map').css({height: map_height - header_height - 100});
 
             var map = L.map('map').setView([51.53181, -3.24687], 10);
 
@@ -53,16 +68,16 @@
 
                 var new_coordinates = [];
                 var new_geometry = {
-                        "type": "Polygon",
-                        "coordinates": [[]]
-                    };
+                    "type": "Polygon",
+                    "coordinates": [[]]
+                };
 
                 for (var a = 0; a < shape_geojson['geometry']['coordinates'][0].length; a++) {
                     var ll2 = new LatLng(shape_geojson['geometry']['coordinates'][0][a][1],
                             shape_geojson['geometry']['coordinates'][0][a][0]);
                     var os2 = ll2.toOSRef();
-                    var coords = os2.toString().replace('(', '').replace(')', '').split(',');
-                    new_coordinates.push(coords);
+                    {#                    var coords = os2.toString().replace('(', '').replace(')', '').split(',');#}
+                    new_coordinates.push([os2.easting, os2.northing]);
                 }
 
                 new_geometry['coordinates'] = [new_coordinates];
@@ -81,22 +96,28 @@
                 e.layer.bindPopup((LGeo.area(e.layer) / 1000000).toFixed(2) + ' km<sup>2</sup>');
                 e.layer.openPopup();
 
-                var shape_geojson = e.layer.toGeoJSON();
+                try {
 
-{#                console.log(shape_geojson);#}
-{#                console.log(shape_geojson['geometry']);#}
-{#                console.log(shape_geojson['properties']);#}
-{#                console.log(shape_geojson['type']);#}
-{##}
-{#                alert(shape_geojson['geometry']['coordinates']);#}
+                    var shape_geojson = e.layer.toGeoJSON();
 
-                var new_geojson = convertPolygonToOS(shape_geojson);
+                    {#                console.log(shape_geojson);#}
+                    {#                console.log(shape_geojson['geometry']);#}
+                    {#                console.log(shape_geojson['properties']);#}
+                    {#                console.log(shape_geojson['type']);#}
+                    {##}
+                    {#                alert(shape_geojson['geometry']['coordinates']);#}
 
-                var wkt = $.geo.WKT.stringify(new_geojson);
+                    var new_geojson = convertPolygonToOS(shape_geojson);
+
+                    var wkt = $.geo.WKT.stringify(new_geojson);
+
+
+
+                } catch(e){}
 
                 $.ajax({
                     type: "POST",
-{#                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",#}
+                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",
                     url: "/spatial_search",
                     data: {
                         geography: wkt,
@@ -105,7 +126,9 @@
                         type: "Qual"
                     },
                     success: function(data) {
-                        alert(data);
+                        {#                                        alert(data);#}
+                        $('#res_table').DataTable({data: data['surveys']});
+
                     },
                     error: function(xhr, textStatus, errorThrown) {
                         console.log("Problem with category: "+errorThrown+xhr.status+xhr.responseText);
@@ -133,14 +156,14 @@
                         "amenity": "Baseball Stadium",
                         "popupContent": "This is where the Rockies play!"
                     },
-{#                    "geometry": {#}
-{#                        "type": "Polygon",#}
-{#                        "coordinates": [[#}
-{#                            [ -3.24687, 51.53181],#}
-{#                            [ -3.24687, 50.53181],#}
-{#                            [ -4.24687, 51.53181]#}
-{#                        ]]#}
-{#                    }#}
+                    {#                    "geometry": {#}
+                    {#                        "type": "Polygon",#}
+                    {#                        "coordinates": [[#}
+                    {#                            [ -3.24687, 51.53181],#}
+                    {#                            [ -3.24687, 50.53181],#}
+                    {#                            [ -4.24687, 51.53181]#}
+                    {#                        ]]#}
+                    {#                    }#}
                 }
             ];
 
@@ -157,15 +180,41 @@
     <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />
     <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>
     <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>
-<script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js"></script>
+    <script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js"></script>
 
-        <script type="text/javascript" src="{% static 'jscoord-1.1.1.js' %}"></script>
+    <script type="text/javascript" src="{% static 'jscoord-1.1.1.js' %}"></script>
 
     {#    <script src='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.js'></script>#}
     {#    <link href='https://api.tiles.mapbox.com/mapbox.js/v2.1.9/mapbox.css' rel='stylesheet' />#}
 
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css">
+
+    <!-- DataTables -->
+    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>
+
 
     <div id="map" style="height: 180px;"></div>
+
+    <table id="res_table" style="height: 100px;">
+        <thead>
+        <tr>
+            <th>a</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <th>b</th>
+        </tr>
+        </tfoot>
+        <tbody>
+        <tr>
+            <td>c</td>
+        </tr>
+        </tbody>
+    </table>
+
+
 
 {% endblock %}
 

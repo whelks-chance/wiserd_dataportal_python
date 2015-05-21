@@ -183,33 +183,73 @@ def map_search(request):
 @csrf_exempt
 def spatial_search(request):
 
-    geography = request.POST.get('geography', '')
+    response_data = {}
 
-    response_data = {
-        'success': True
-        }
+    geography = request.POST.get('geography', '')
+    if len(geography) == 0:
+        response_data['success'] = False
+        return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
+
+    response_data['success'] = True
 
     cursor = connections['survey'].cursor()
 
-    table_cols = "SELECT f_table_name, f_geometry_column FROM geometry_columns where f_table_schema = 'public'"
+    table_cols = "SELECT DISTINCT f_table_name, f_geometry_column FROM geometry_columns where f_table_schema = 'public'"
     cursor.execute(table_cols)
     tables = cursor.fetchall()
     print tables
 
     areas = []
+    survey_ids = []
+    survey_info = []
+
     for geoms in tables:
+        survey_data = {}
+
         intersects = "SELECT area_name from " + geoms[0] + \
-        " WHERE ST_Intersects(ST_Transform(ST_GeometryFromText('" + geography + "', 27700), 4326)," + geoms[1] + ");"
+        " WHERE ST_Intersects(ST_Transform(ST_GeometryFromText('" + geography + "', 27700), 4326)," + geoms[1] + ")"
 
         cursor.execute(intersects)
-        area_name = cursor.fetchall()
+        area_names = cursor.fetchall()
 
-        print area_name
-        areas.append(area_name)
+        if len(area_names) > 0:
+            # print area_names
+            areas.append(area_names[0])
+            survey_data['areas'] = area_names
 
-    response_data['areas'] = areas
+        spatials = models.survey_models.SurveySpatialLink.objects.using('survey').filter(spatial_id=geoms[0]).values_list('surveyid', flat=True)
+
+        spatials = list(spatials)
+
+        if len(spatials) > 0:
+            print spatials
+            print spatials[0].strip()
+            survey_ids.append(spatials[0].strip())
+            survey_data['survey_ids'] = spatials
+
+            survey_model = models.survey_models.Survey.objects.using('survey').filter(surveyid__in=spatials).values_list('short_title', 'collectionenddate')
+
+            print survey_model
+
+            for s in survey_model:
+
+                if len(s) > 0:
+                    print type(s[0]), s[0]
+                    survey_data['survey_short_title'] = s[0]
+                try:
+                    date = s[1].strftime('%Y-%m-%d %H:%M:%S %Z')
+                except:
+                    date = ''
+                survey_data['date'] = date
+
+        survey_info.append(survey_data)
+
+    # response_data['areas'] = areas
+    response_data['surveys'] = survey_info
 
     # cursor.execute("select table_name from information_schema.tables where table_name like %s limit 30", ['ztab%'])
     # max_value = cursor.fetchone()[0]
+
+    print response_data
 
     return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
