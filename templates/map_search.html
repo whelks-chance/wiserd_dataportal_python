@@ -4,25 +4,45 @@
 {% block content %}
     <script>
         $(document).ready(function () {
+            var wkt = '';
 
-            {#            $('#res_table').DataTable({#}
-            {#                serverSide: true,#}
-            {#                ajax: {#}
-            {#                    url: '/spatial_search',#}
-            {#                    type: 'POST',#}
-            {#                    data: {#}
-            {#                        geography: '',#}
-            {#                        start: 0,#}
-            {#                        limit: 15,#}
-            {#                        type: "Qual"#}
-            {#                    }#}
-            {#                }#}
-            {#            });#}
+            var res_table = $('#res_table').DataTable({
+                serverSide: false,
+                processing: true,
+                ajax: {
+                    url: '/spatial_search',
+                    type: 'POST',
+                    data: function ( d ) {
+                        d.geography = wkt;
+                        d.start = 0;
+                        d.limit = 15;
+                        d.type = "Qual";
+                    }
+
+                },
+                columns: [
+                    { data: "survey_short_title" },
+                    { data: "date" },
+                    { data: "survey_id" },
+                    { data: "area" },
+                    {
+                        "targets": -1,
+                        "data": null,
+                        "defaultContent": "<button>View Questions!</button>"
+                    }
+                ]
+            });
+
+            $('#res_table tbody').on( 'click', 'button', function () {
+                var data = table.row( $(this).parents('tr') ).data();
+                var questions = 'gen_stuff';
+                alert( data[3] +" questions are " + questions );
+            } );
 
             var map_height = window.innerHeight;
             var header_height = $('#navbar_lv_header').height();
 
-            $('#map').css({height: map_height - header_height - 100});
+            $('#map').css({height: map_height - header_height});
 
             var map = L.map('map').setView([51.53181, -3.24687], 10);
 
@@ -90,84 +110,65 @@
                     showPolygonArea({ layer: layer });
                 });
             }
+
+            dialog = $( "#dialog-form" ).dialog({
+                autoOpen: false,
+                height: window.innerHeight - 20,
+                width: window.innerWidth - 20,
+                modal: true,
+                buttons: {
+                    Close: function() {
+                        dialog.dialog( "close" );
+                    }
+                },
+                close: function() {
+                    {#                    form[ 0 ].reset();#}
+                    {#                    allFields.removeClass( "ui-state-error" );#}
+                }
+            });
+            function show_res_dialog() {
+                dialog.dialog("open");
+                res_table.ajax.reload();
+            }
+
             function showPolygonArea(e) {
                 featureGroup.clearLayers();
                 featureGroup.addLayer(e.layer);
                 e.layer.bindPopup((LGeo.area(e.layer) / 1000000).toFixed(2) + ' km<sup>2</sup>');
                 e.layer.openPopup();
 
-                try {
+                {#                try {#}
 
-                    var shape_geojson = e.layer.toGeoJSON();
+                var shape_geojson = e.layer.toGeoJSON();
+                var new_geojson = convertPolygonToOS(shape_geojson);
+                wkt = $.geo.WKT.stringify(new_geojson);
 
-                    {#                console.log(shape_geojson);#}
-                    {#                console.log(shape_geojson['geometry']);#}
-                    {#                console.log(shape_geojson['properties']);#}
-                    {#                console.log(shape_geojson['type']);#}
-                    {##}
-                    {#                alert(shape_geojson['geometry']['coordinates']);#}
-
-                    var new_geojson = convertPolygonToOS(shape_geojson);
-
-                    var wkt = $.geo.WKT.stringify(new_geojson);
+                show_res_dialog();
 
 
+                {#                    $.ajax({#}
+                {#                        type: "POST",#}
+                {#                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",#}
+                {#                        url: "/spatial_search",#}
+                {#                        data: {#}
+                {#                            geography: wkt,#}
+                {#                            start: 0,#}
+                {#                            limit: 15,#}
+                {#                            type: "Qual"#}
+                {#                        },#}
+                {#                        success: function(data) {#}
+                {#                                        alert(data);#}
+                {#                            $('#res_table').DataTable({data: data['surveys']});#}
+                {##}
+                {#                        },#}
+                {#                        error: function(xhr, textStatus, errorThrown) {#}
+                {#                            console.log("Problem with category: "+errorThrown+xhr.status+xhr.responseText);#}
+                {#                        }#}
+                {#                    });#}
 
-                } catch(e){}
+                {#                } catch(e){}#}
 
-                $.ajax({
-                    type: "POST",
-                    url: "http://localhost/geoportal2/index.php?r=SpatialData/SpatialSearch",
-                    url: "/spatial_search",
-                    data: {
-                        geography: wkt,
-                        start: 0,
-                        limit: 15,
-                        type: "Qual"
-                    },
-                    success: function(data) {
-                        {#                                        alert(data);#}
-                        $('#res_table').DataTable({data: data['surveys']});
-
-                    },
-                    error: function(xhr, textStatus, errorThrown) {
-                        console.log("Problem with category: "+errorThrown+xhr.status+xhr.responseText);
-                    }
-                });
             }
-
-
-            var geojson = [{
-                "type": "Feature",
-                "properties": {
-                    "name": "Coors Field",
-                    "amenity": "Baseball Stadium",
-                    "popupContent": "This is where the Rockies play!"
-                },
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [-3.24687, 51.53181]
-                }
-            },
-                {
-                    "type": "Feature",
-                    "properties": {
-                        "name": "Coors Field",
-                        "amenity": "Baseball Stadium",
-                        "popupContent": "This is where the Rockies play!"
-                    },
-                    {#                    "geometry": {#}
-                    {#                        "type": "Polygon",#}
-                    {#                        "coordinates": [[#}
-                    {#                            [ -3.24687, 51.53181],#}
-                    {#                            [ -3.24687, 50.53181],#}
-                    {#                            [ -4.24687, 51.53181]#}
-                    {#                        ]]#}
-                    {#                    }#}
-                }
-            ];
-
-            L.geoJson(geojson).addTo(map);
         });
 
 
@@ -196,25 +197,46 @@
 
     <div id="map" style="height: 180px;"></div>
 
-    <table id="res_table" style="height: 100px;">
-        <thead>
-        <tr>
-            <th>a</th>
-        </tr>
-        </thead>
-        <tfoot>
-        <tr>
-            <th>b</th>
-        </tr>
-        </tfoot>
-        <tbody>
-        <tr>
-            <td>c</td>
-        </tr>
-        </tbody>
-    </table>
 
+    <div id="dialog-form" title="Surveys available for this area">
+        {#        <p class="validateTips">All form fields are required.</p>#}
 
+        <form>
+            <fieldset>
+                <table id="res_table" class="display" style="height: 100px;">
+                    <thead>
+                    <tr>
+                        <th>Survey Title</th>
+                        <th>Date</th>
+                        <th>Survey ID</th>
+                        <th>Area</th>
+                        <th>Options</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th>Survey Title</th>
+                        <th>Date</th>
+                        <th>Survey ID</th>
+                        <th>Area</th>
+                        <th>Options</th>
+                    </tr>
+                    </tfoot>
+                    <tbody>
+                    {#                    Padding #}
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    <tr><td></td><td></td><td></td><td></td><td></td></tr>
+                    </tbody>
+                </table>
+
+                <!-- Allow form submission with keyboard without duplicating the dialog button -->
+                {#      <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">#}
+            </fieldset>
+        </form>
+    </div>
 
 {% endblock %}
 

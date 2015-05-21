@@ -183,7 +183,9 @@ def map_search(request):
 @csrf_exempt
 def spatial_search(request):
 
-    response_data = {}
+    response_data = {
+        'data': []
+    }
 
     geography = request.POST.get('geography', '')
     if len(geography) == 0:
@@ -212,40 +214,44 @@ def spatial_search(request):
         cursor.execute(intersects)
         area_names = cursor.fetchall()
 
+        area_name = ''
         if len(area_names) > 0:
-            # print area_names
-            areas.append(area_names[0])
-            survey_data['areas'] = area_names
+            print area_names[0][0].strip()
+            areas.append(area_names[0][0])
+            area_name = area_names[0][0]
+        survey_data['area'] = area_name
 
         spatials = models.survey_models.SurveySpatialLink.objects.using('survey').filter(spatial_id=geoms[0]).values_list('surveyid', flat=True)
 
         spatials = list(spatials)
 
+        date = ''
+        sid = ''
+        survey_short_title = ''
         if len(spatials) > 0:
-            print spatials
             print spatials[0].strip()
             survey_ids.append(spatials[0].strip())
-            survey_data['survey_ids'] = spatials
-
+            sid = spatials[0]
             survey_model = models.survey_models.Survey.objects.using('survey').filter(surveyid__in=spatials).values_list('short_title', 'collectionenddate')
-
-            print survey_model
 
             for s in survey_model:
 
                 if len(s) > 0:
-                    print type(s[0]), s[0]
-                    survey_data['survey_short_title'] = s[0]
+                    survey_short_title = s[0]
                 try:
-                    date = s[1].strftime('%Y-%m-%d %H:%M:%S %Z')
+                    date = s[1].strftime('%Y / %m / %d')
                 except:
                     date = ''
-                survey_data['date'] = date
+
+        survey_data['survey_short_title'] = survey_short_title
+        survey_data['survey_id'] = sid.strip()
+        # survey_data['survey_id_full'] = sid
+        survey_data['date'] = date
 
         survey_info.append(survey_data)
 
     # response_data['areas'] = areas
-    response_data['surveys'] = survey_info
+    response_data['data'] = survey_info
 
     # cursor.execute("select table_name from information_schema.tables where table_name like %s limit 30", ['ztab%'])
     # max_value = cursor.fetchone()[0]
