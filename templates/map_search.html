@@ -17,6 +17,7 @@
                         d.start = 0;
                         d.limit = 15;
                         d.type = "Qual";
+                        d.test = "yes";
                     }
 
                 },
@@ -28,16 +29,19 @@
                     {
                         "targets": -1,
                         "data": null,
-                        "defaultContent": "<button>View Questions!</button>"
+                        "defaultContent": "<div class='btn btn-info show_questions'>Q's</div>"
                     }
                 ]
             });
 
-            $('#res_table tbody').on( 'click', 'button', function () {
-                var data = table.row( $(this).parents('tr') ).data();
-                var questions = 'gen_stuff';
-                alert( data[3] +" questions are " + questions );
-            } );
+            function attach_question_buttons() {
+                $('#res_table').find('tbody').on('click', '.show_questions', function () {
+                    var data = res_table.row($(this).parents('tr')).data();
+                    var questions = '<to be added here>';
+                    alert(data['survey_id'] + " questions are " + questions);
+                });
+            }
+            attach_question_buttons();
 
             var map_height = window.innerHeight;
             var header_height = $('#navbar_lv_header').height();
