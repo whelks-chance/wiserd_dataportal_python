@@ -5,15 +5,12 @@
 <html lang="en">
 <head>
 
-    {% block extra_head %}
-    {% endblock %}
-
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     {#    <meta charset="utf-8">#}
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="WISERD DataPortal">
-    <meta name="author" content="Cardiff University">
+    <meta name="author" content="WISERD / Cardiff University">
     <link rel="shortcut icon" href="{% static "media/images/icon/LostVisions_Favicon.png" %}">
 
     <title>WISERD DataPortal</title>
@@ -21,16 +18,16 @@
     <!-- Bootstrap -->
 
     <!--[if lt IE 9]>
-<script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
-<![endif]-->
-    <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-<script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-<![endif]-->
+    <script src="http://ie7-js.googlecode.com/svn/version/2.1(beta4)/IE9.js"></script>
+    <![endif]-->
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
 
 
     {#    <script src="//code.jquery.com/jquery-1.9.1.js"></script>#}
-    <script type="text/javascript" src="{% static "jquery/jquery-1.9.1.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "jquery/ui/jquery-ui-1.11.4.custom/external/jquery/jquery.js" %}"></script>
 
     {#    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.0/jquery.cookie.js"></script>#}
     <script type="text/javascript" src="{% static "jquery/jquery.cookie.js" %}"></script>
@@ -43,98 +40,78 @@
       <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
       <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
-    {#    <link rel="stylesheet" type="text/css" href="{% static "jquery.imgareaselect-1.0.0-rc.1/distfiles/css/imgareaselect-default.css" %}" />#}
-    {#    <script type="text/javascript" src="{% static "jquery.imgareaselect-0.9.10/scripts/jquery.min.js" %}"></script>#}
-    {#    <script type="text/javascript" src="{% static "jquery.imgareaselect-0.9.10/scripts/jquery.imgareaselect.min.js" %}"></script>#}
-    {#    <script type="text/javascript" src="{% static "jquery.imgareaselect-1.0.0-rc.1/jquery.imgareaselect.min.js" %}"></script>#}
-    {#    <script type="text/javascript" src="http://jqueryrotate.googlecode.com/svn/trunk/jQueryRotate.js"></script>#}
-    <script type="text/javascript" src="{% static "jquery/rotate/jQueryRotate.js" %}"></script>
-
-
-    {#    <script type="text/javascript" src="{% static "dtree/dtree.js" %}"></script>#}
-    {#    <script type="text/javascript" src="{% static "masonry.pkgd.min.js" %}"></script>#}
-    {#    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/masonry/3.1.2/masonry.pkgd.min.js"></script>#}
     <script type="text/javascript" src="{% static "masonry.pkgd.min.js" %}"></script>
 
-    {#    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/jqcloud/1.0.4/jqcloud-1.0.4.min.js"></script>#}
-    {#    <link rel="stylesheet" type="text/css" href="{% static "//cdnjs.cloudflare.com/ajax/libs/jqcloud/1.0.4/jqcloud.css" %}" />#}
-    {#    <script type="text/javascript" src="{% static "vakata-jstree-480a265/dist/jstree.js" %}"></script>#}
+     <script type="text/javascript" src="{% static "intro.js/intro.js" %}"></script>
 
-    {#    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/intro.js/0.5.0/intro.js"></script>#}
-    <script type="text/javascript" src="{% static "intro.js/intro.js" %}"></script>
-
-    {#    <script type="text/javascript" src="{% static "lostvisions.js" %}"></script>#}
-
-    <script src="https://cdn.rawgit.com/GestiXi/image-scale/master/image-scale.min.js"></script>
-
-    <style>
-        #format { margin-top: 2em; }
-    </style>
-
-    <!-- Bootstrap core JavaScript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    {#<script src="https://code.jquery.com/jquery.js"></script>#}
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    {#    <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css"></script>#}
-
-    {#        <script src="//netdna.bootstrapcdn.com/bootstrap/3.0.3/js/bootstrap.min.js"></script>#}
     <script src="{% static "bootstrap-sass-master/assets/javascripts/bootstrap.js" %}"></script>
 
+    <script type="text/javascript" src="{% static "jquery/ui/jquery-ui-1.11.4.custom/jquery-ui.min.js" %}"></script>
 
-    {#    <script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>#}
-    <script type="text/javascript" src="{% static "jquery/ui/1.10.4/jquery-ui.min.js" %}"></script>
+    <script type="text/javascript" src="{% static "jquery/ui/dialogextend/jquery.dialogextend.min.js" %}"></script>
 
-    {#    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery-scrollTo/1.4.11/jquery.scrollTo.min.js"></script>#}
+    {#        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.css" />#}
+    <link rel="stylesheet" type="text/css" href="{% static 'leafletjs.com/leaflet-0.7.3/leaflet.css' %}" />
 
-    {#    <script type="text/javascript" src="{% static "dajax/jquery.dajax.core.js" %}"></script>#}
+    {#        <script src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>#}
+    <script type="text/javascript" src="{% static 'leafletjs.com/leaflet-0.7.3/leaflet.js' %}"></script>
 
-    <script type="text/javascript" src="//cdn.jsdelivr.net/jquery.slick/1.4.1/slick.min.js"></script>
-{#    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.4.1/slick.css"/>#}
-{#    <link rel="stylesheet" type="text/css" href="//cdn.jsdelivr.net/jquery.slick/1.4.1/slick-theme.css"/>#}
+    {#    <link href='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.css' rel='stylesheet' />#}
+    <link rel="stylesheet" type="text/css" href="{% static 'mapbox.js/plugins/Leaflet.draw-master/dist/leaflet.draw.css' %}"/>
 
-    {#      CSS Files     #}
+    {#            <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-draw/v0.2.2/leaflet.draw.js'></script>#}
+    <script type="text/javascript" src="{% static 'mapbox.js/plugins/Leaflet.draw-master/dist/leaflet.draw.js' %}"></script>
 
-    {#    page default theme    #}
-    {#    <link href="{% static "bootstrap.readable.css" %}" rel="stylesheet">#}
+    {#    <script src='https://api.tiles.mapbox.com/mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js'></script>#}
+    <script type="text/javascript" src="{% static 'mapbox.js/plugins/leaflet-geodesy/v0.1.0/leaflet-geodesy.js' %}"></script>
 
-{#    <link href="{% static "bootstrap-sass-master/assets/stylesheets/_bootstrap.css" %}" rel="stylesheet">#}
+    {#    <script src="http://code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js"></script>#}
+    <script type="text/javascript" src="{% static 'code.jquerygeo.com/jquery.geo-1.0.0-b2.min.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'jscoord-1.1.1.js' %}"></script>
+
+    <!-- DataTables CSS -->
+    {#    <link rel="stylesheet" type="text/css" href="//cdn.datatables.net/1.10.7/css/jquery.dataTables.css">#}
+    <link rel="stylesheet" type="text/css" href="{% static 'DataTables-1.10.7/media/css/jquery.dataTables.css' %}"/>
+
+    <!-- DataTables -->
+    {#    <script type="text/javascript" charset="utf8" src="//cdn.datatables.net/1.10.7/js/jquery.dataTables.js"></script>#}
+    <script type="text/javascript" src="{% static 'DataTables-1.10.7/media/js/jquery.dataTables.js' %}"></script>
+
+
 
     <link href="{% static "mini.css" %}" rel="stylesheet">
 
     <script>
         function load_css() {
             var head = $('head');
-            {#            <!--head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "bootstrap.slate.min.css" %}') );-->#}
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "bootstrap.flatly.min.css" %}'));#}
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "bootstrap.readable.css" %}'));#}
-
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '//cdnjs.cloudflare.com/ajax/libs/intro.js/0.5.0/introjs.css'));#}
             head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "intro.js/0.5.0/introjs.css" %}'));
             head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "intro.js/0.5.0/introjs-nassim.css" %}'));
 
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.min.css') );#}
             head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "font_awesome/css/font-awesome.min.css" %}'));
 
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '//cdnjs.cloudflare.com/ajax/libs/bootstrap-social/4.0.6/bootstrap-social.min.css') );#}
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '//code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css') );#}
-            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "jquery/ui/1.10.4/themes/smoothness/jquery-ui.css" %}'));
-            {#            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "vakata-jstree-480a265/dist/themes/default/style.css" %}') );#}
-            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "lostvisions.css" %}') );
+            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "jquery/ui/jquery-ui-1.11.4.custom/jquery-ui.min.css" %}'));
+            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "jquery/ui/jquery-ui-1.11.4.custom/jquery-ui.structure.min.css" %}'));
+            <!--head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "lostvisioins.css" %}'));-->
+
         }
+load_css();
+    </script>
+
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-63102294-1', 'auto');
+        ga('send', 'pageview');
 
     </script>
 
-<script>
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
 
-  ga('create', 'UA-63102294-1', 'auto');
-  ga('send', 'pageview');
-
-</script>
+    {% block extra_head %}
+    {% endblock %}
 </head>
 
 <body>
@@ -210,7 +187,7 @@
                         </ul>
                     </li>
 
-                <li class="dropdown">
+                    <li class="dropdown">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">
                             <div class="fa fa-cog"></div>
                             Tools
@@ -221,7 +198,7 @@
                             <li>
                                 <a class="btn btn-block" href="{% url 'search_advanced'%}">Advanced Search</a>
                             </li>
-                                                            <li class="divider"></li>
+                            <li class="divider"></li>
                             <li>
                                 <a class="btn btn-block" href="{% url 'map_search'%}">Map Search</a>
                             </li>
@@ -253,7 +230,7 @@
 
         {% endblock %}
     </div>
-{#    <div class="push"></div>#}
+    {#    <div class="push"></div>#}
 
 </div>
 

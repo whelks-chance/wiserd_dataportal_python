@@ -1,5 +1,6 @@
 import json
 import pprint
+from random import Random
 from django.contrib import auth
 from django.db import connections
 from django.http import HttpResponse
@@ -157,12 +158,12 @@ def do_advanced_search(request):
     all_survey_ids = []
     number_of_results_int = 100
     return render(request, 'advanced_search_results.html',
-              {'results': response_data,
-               'query_array': request.GET,
-               'query': readable_query,
-               'all_survey_ids': all_survey_ids,
-               'number_to_show': number_of_results_int},
-              context_instance=RequestContext(request))
+                  {'results': response_data,
+                   'query_array': request.GET,
+                   'query': readable_query,
+                   'all_survey_ids': all_survey_ids,
+                   'number_to_show': number_of_results_int},
+                  context_instance=RequestContext(request))
 
 
 
@@ -170,9 +171,25 @@ def data_autocomplete(request):
     response_data = {}
     return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
 
-
+@csrf_exempt
 def get_metadata(request):
-    response_data = {}
+
+    data = []
+    rnd = Random()
+
+    for i in range(0, rnd.randint(5, 50)):
+        data.append({
+            'a': rnd.randint(1, 10),
+            'b': rnd.randint(1, 10),
+            'c': rnd.randint(1, 10),
+            'd': rnd.randint(1, 10),
+            'e': rnd.randint(1, 10)
+        })
+
+    response_data = {
+        'data': data,
+        'post': request.POST.__dict__
+    }
     return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
 
 
@@ -189,13 +206,12 @@ def spatial_search(request):
         'data': []
     }
 
-    geography = request.POST.get('geography', '')
-    if len(geography) == 0:
-        response_data['success'] = False
+    geography_wkt = request.POST.get('geography', '')
+    if test_available and (len(request.POST.get('test', '')) or len(geography_wkt) == 0):
+        response_data = {'data': [{'area': u'Wales', 'survey_short_title': u'WERS', 'date': '2005 / 04 / 30', 'survey_id': u'sid_wersmq2004', 'survey_id_full': u'sid_wersmq2004                                                                                                                                                                                                                                                 ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_412', 'survey_id_full': u'sid_whs2008_412                                                                                                                                                                                                                                                ', 'areas': []}, {'area': '', 'survey_short_title': u'Welsh Health Survey', 'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_03', 'survey_id_full': u'sid_whs2007_03                                                                                                                                                                                                                                                 ', 'areas': []}, {'area': u'Gwent, Monmouthshire, South East Wales, NP152, South Wales, W01001581', 'survey_short_title': u'LiW Property', 'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_id_full': u'sid_liwps2004                                                                                                                                                                                                                                                  ', 'areas': [u'NP152', u'Gwent', u'South East Wales', u'Monmouthshire', u'South Wales', u'W01001581']}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_03', 'survey_id_full': u'sid_whs2009_03                                                                                                                                                                                                                                                 ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007aq', 'survey_id_full': u'sid_whs2007aq                                                                                                                                                                                                                                                  ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2005 / 09 / 30', 'survey_id': u'sid_whs0306aq', 'survey_id_full': u'sid_whs0306aq                                                                                                                                                                                                                                                  ', 'areas': [u'Monmouthshire', u'Monmouthshire']}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_03', 'survey_id_full': u'sid_whs2008_03                                                                                                                                                                                                                                                 ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008aq', 'survey_id_full': u'sid_whs2008aq                                                                                                                                                                                                                                                  ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_1315', 'survey_id_full': u'sid_whs2007_1315                                                                                                                                                                                                                                               ', 'areas': []}, {'area': u'Monmouthshire 005E, Gwent, Monmouthshire, Monmouth, NP151, South Wales', 'survey_short_title': u'LiW Household', 'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_id_full': u'sid_liw2007                                                                                                                                                                                                                                                    ', 'areas': [u'South Wales', u'NP151', u'Monmouthshire 005E', u'Monmouth', u'Gwent', u'Monmouthshire']}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_1315', 'survey_id_full': u'sid_whs2008_1315                                                                                                                                                                                                                                               ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_412', 'survey_id_full': u'sid_whs2009_412                                                                                                                                                                                                                                                ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009aq', 'survey_id_full': u'sid_whs2009aq                                                                                                                                                                                                                                                  ', 'areas': []}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_412', 'survey_id_full': u'sid_whs2007_412                                                                                                                                                                                                                                                ', 'areas': []}, {'area': u'Monmouthshire 005E, Gwent, Monmouthshire, NP151, South East Wales, South Wales', 'survey_short_title': u'LiW Household', 'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_id_full': u'sid_liwhh2006                                                                                                                                                                                                                                                  ', 'areas': [u'Monmouthshire', u'Gwent', u'South Wales', u'Monmouthshire 005E', u'South East Wales', u'NP151']}, {'area': u'Monmouthshire', 'survey_short_title': u'Welsh Health Survey', 'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_1315', 'survey_id_full': u'sid_whs2009_1315                                                                                                                                                                                                                                               ', 'areas': []}, {'area': u'Monmouthshire 005E, Monmouthshire, Monmouth, NP151, South East Wales, South Wales', 'survey_short_title': u'LiW Household', 'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_id_full': u'sid_liwhh2004                                                                                                                                                                                                                                                  ', 'areas': [u'South Wales', u'NP151', u'Monmouthshire', u'South East Wales', u'Monmouthshire 005E', u'Monmouth']}, {'area': u'Monmouthshire 005E, Gwent, Monmouthshire, Monmouth, NP151, South Wales', 'survey_short_title': u'LiW Household', 'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_id_full': u'sid_liwhh2005                                                                                                                                                                                                                                                  ', 'areas': [u'Monmouthshire', u'Gwent', u'Monmouth', u'NP151', u'South Wales', u'Monmouthshire 005E']}], 'success': True}
         return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
-
-    if test_available and len(request.POST.get('test', '')):
-        response_data = {'data': [{'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'South West Wales'}, {'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_1315', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'South West Wales'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_03', 'survey_short_title': u'Welsh Health Survey', 'area': ''}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'Carmarthen East and Dinefwr'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'Mid and West Wales'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'Carmarthen East and Dinefwr'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'Dyfed Powys'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'Dyfed Powys'}, {'date': '2005 / 09 / 30', 'survey_id': u'sid_whs0306aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'Dyfed Powys'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'SA182'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'Mid and West Wales'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'Carmarthen East and Dinefwr'}, {'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_412', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'Mid and West Wales'}, {'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire 010A'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2005 / 04 / 30', 'survey_id': u'sid_wersmq2004', 'survey_short_title': u'WERS', 'area': u'Wales'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'SA182'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'South West Wales'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'Dyfed Powys'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire 010A'}, {'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_03', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'SA182'}, {'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_412', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'Carmarthen East and Dinefwr'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'SA182'}, {'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_1315', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'Dyfed Powys'}, {'date': '2005 / 09 / 30', 'survey_id': u'sid_whs0306aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'Mid and West Wales'}, {'date': '2006 / 10 / 13', 'survey_id': u'sid_liwhh2006', 'survey_short_title': u'LiW Household', 'area': u'SA182'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'South West Wales'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'Carmarthenshire'}, {'date': '2007 / 07 / 31', 'survey_id': u'sid_liw2007', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire'}, {'date': '2007 / 12 / 31', 'survey_id': u'sid_whs2007_412', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'Mid and West Wales'}, {'date': '2005 / 08 / 14', 'survey_id': u'sid_liwhh2005', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire 010A'}, {'date': '2005 / 09 / 30', 'survey_id': u'sid_whs0306aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '', 'survey_id': '', 'survey_short_title': '', 'area': u'Carmarthenshire'}, {'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'South West Wales'}, {'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009aq', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2009 / 12 / 31', 'survey_id': u'sid_whs2009_1315', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'Carmarthenshire 010A'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwps2004', 'survey_short_title': u'LiW Property', 'area': u'W01000656'}, {'date': '2004 / 10 / 04', 'survey_id': u'sid_liwhh2004', 'survey_short_title': u'LiW Household', 'area': u'Carmarthen East and Dinefwr'}, {'date': '2008 / 12 / 31', 'survey_id': u'sid_whs2008_03', 'survey_short_title': u'Welsh Health Survey', 'area': u'Carmarthenshire'}], 'success': True}
+    elif len(geography_wkt) == 0:
+        response_data['success'] = False
         return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
 
     response_data['success'] = True
@@ -209,20 +225,25 @@ def spatial_search(request):
 
     areas = []
     survey_ids = []
-    survey_info = []
+    survey_info = {}
 
     for geoms in tables:
-        survey_data = {}
+        f_table_name = geoms[0]
+        print f_table_name
+        f_geometry_column = geoms[1]
 
-        intersects = "SELECT area_name from " + geoms[0] + \
-        " WHERE ST_Intersects(ST_Transform(ST_GeometryFromText('" + geography + "', 27700), 4326)," + geoms[1] + ")"
+        survey_data = {}
+        survey_data['areas'] = []
+
+        intersects = "SELECT area_name from " + f_table_name + \
+                     " WHERE ST_Intersects(ST_Transform(ST_GeometryFromText('" + geography_wkt + "', 27700), 4326)," + f_geometry_column + ")"
 
         cursor.execute(intersects)
         area_names = cursor.fetchall()
 
         area_name = ''
         if len(area_names) > 0:
-            print area_names[0][0].strip()
+            # print area_names[0][0].strip()
             areas.append(area_names[0][0])
             area_name = area_names[0][0]
         survey_data['area'] = area_name
@@ -235,13 +256,12 @@ def spatial_search(request):
         sid = ''
         survey_short_title = ''
         if len(spatials) > 0:
-            print spatials[0].strip()
+            # print spatials[0].strip()
             survey_ids.append(spatials[0].strip())
             sid = spatials[0]
-            survey_model = models.survey_models.Survey.objects.using('survey').filter(surveyid__in=spatials).values_list('short_title', 'collectionenddate')
+            survey_model = models.survey_models.Survey.objects.using('survey').filter(surveyid__in=spatials).values_list('short_title', 'collectionenddate', 'surveyid').distinct()
 
             for s in survey_model:
-
                 if len(s) > 0:
                     survey_short_title = s[0]
                 try:
@@ -251,13 +271,18 @@ def spatial_search(request):
 
         survey_data['survey_short_title'] = survey_short_title
         survey_data['survey_id'] = sid.strip()
-        # survey_data['survey_id_full'] = sid
+        survey_data['survey_id_full'] = sid
         survey_data['date'] = date
 
-        survey_info.append(survey_data)
+        if len(survey_data['survey_id']):
+            if survey_info.has_key(survey_data['survey_id']):
+                survey_info[survey_data['survey_id']]['areas'].append(survey_data['area'])
+                survey_info[survey_data['survey_id']]['area'] = ', '.join(list(set(survey_info[survey_data['survey_id']]['areas'])))
+            else:
+                survey_info[survey_data['survey_id']] = survey_data
 
     # response_data['areas'] = areas
-    response_data['data'] = survey_info
+    response_data['data'] = survey_info.values()
 
     # cursor.execute("select table_name from information_schema.tables where table_name like %s limit 30", ['ztab%'])
     # max_value = cursor.fetchone()[0]
@@ -265,3 +290,9 @@ def spatial_search(request):
     print response_data
 
     return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
+
+
+def test(request):
+    return render(request, 'test.html',
+                  {'data': True, 'msg': 'msg'},
+                  context_instance=RequestContext(request))

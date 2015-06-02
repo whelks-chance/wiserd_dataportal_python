@@ -1,0 +1,217 @@
+
+{% extends "base.html" %}
+{% load staticfiles %}
+
+{% block extra_head %}
+    <title>Adding jQuery Tabs Dynamically</title>
+
+    {#    <link href="http://code.jquery.com/ui/1.9.0/themes/start/jquery-ui.css" rel="Stylesheet" type="text/css" /> #}
+    {#    <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.js"></script>  #}
+    {#    <script type="text/javascript" src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>  #}
+
+    <script type="text/javascript">
+
+        var wkt = '';
+
+        $(document).ready(function () {
+            $("#divTabs").tabs().height(window.innerHeight - 50);
+            $("#resTabs").tabs().height($("#divTabs").height() - $('#ulTabs').height() - 4).css({padding: 0});;
+            $("#ResultsTab2").css({padding: 0});
+
+
+            var map = L.map('map').setView([51.53181, -3.24687], 10);
+
+            L.tileLayer('http://i7.cscloud.cf.ac.uk/osmcarto/{z}/{x}/{y}.png?access_token={accessToken}', {
+                attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors, <a href="http://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>',
+                maxZoom: 15,
+                id: 'your.mapbox.project.id',
+                accessToken: 'your.mapbox.public.access.token'
+            }).addTo(map);
+
+            function onMapClick(e) {
+                var popup = L.marker()
+                        .setLatLng(e.latlng)
+                        .setContent(e.latlng)
+                        .openOn(map);
+            }
+
+            map.on('click', onMapClick);
+
+            var featureGroup = L.featureGroup().addTo(map);
+
+            var drawControl = new L.Control.Draw({
+                edit: {
+                    featureGroup: featureGroup
+                },
+                draw: {
+                    polygon: true,
+                    polyline: false,
+                    rectangle: {
+                        shapeOptions : {
+                            color : '#888888'
+                        }
+                    },
+                    circle: false,
+                    marker: false
+                }
+            }).addTo(map);
+
+            map.on('draw:created', showPolygonArea);
+            map.on('draw:edited', showPolygonAreaEdited);
+
+            function convertPolygonToOS(shape_geojson){
+
+                var new_coordinates = [];
+                var new_geometry = {
+                    "type": "Polygon",
+                    "coordinates": [[]]
+                };
+
+                for (var a = 0; a < shape_geojson['geometry']['coordinates'][0].length; a++) {
+                    var ll2 = new LatLng(shape_geojson['geometry']['coordinates'][0][a][1],
+                            shape_geojson['geometry']['coordinates'][0][a][0]);
+                    var os2 = ll2.toOSRef();
+                    {#                    var coords = os2.toString().replace('(', '').replace(')', '').split(',');#}
+                    new_coordinates.push([os2.easting, os2.northing]);
+                }
+
+                new_geometry['coordinates'] = [new_coordinates];
+
+                return new_geometry
+
+            }
+            function showPolygonAreaEdited(e) {
+                e.layers.eachLayer(function(layer) {
+                    showPolygonArea({ layer: layer });
+                });
+            }
+
+            function showPolygonArea(e) {
+                featureGroup.clearLayers();
+                featureGroup.addLayer(e.layer);
+                e.layer.bindPopup((LGeo.area(e.layer) / 1000000).toFixed(2) + ' km<sup>2</sup>');
+                e.layer.openPopup();
+
+                var shape_geojson = e.layer.toGeoJSON();
+                var new_geojson = convertPolygonToOS(shape_geojson);
+                wkt = $.geo.WKT.stringify(new_geojson);
+
+                {#                show_res_dialog();#}
+
+                AddNewTab();
+            }
+        });
+
+
+
+        var tabCounter = 2;
+
+        function AddNewTab() {
+            tabCounter++;
+
+            var divTabs = $("#resTabs");
+            var ul = $("#ulResTabs");
+            var contentDivId = "divTab" + tabCounter;
+            {#            var sampleContent = "<p>Sample content for the " + tabCounter + " tab.</p>";#}
+
+            var spatialContent = "<table id='table" + tabCounter + "' class='display' style='height: 100px;'>" +
+                    "<thead><tr><th>Survey Title</th><th>Date</th><th>Survey ID</th><th>Area</th><th>Options</th></tr></thead>" +
+                    "<tfoot><tr><th>Survey Title</th><th>Date</th><th>Survey ID</th><th>Area</th><th>Options</th></tr></tfoot>" +
+                    "<tbody>" +
+                    "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+                    "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+                    "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+                    "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+                    "<tr><td></td><td></td><td></td><td></td><td></td></tr>" +
+                    "</tbody></table>";
+
+            var sampleContent = spatialContent;
+
+            /*** "Destroy" current tab widget temporarily. (...re-initialized later) ***/
+            divTabs.tabs("destroy");
+
+            /*** Add the new LI element for the tab, and point it to the content's id. ***/
+            ul.html(ul.html() + "<li><a href='#" + contentDivId + "'>Tab " + tabCounter + "</a></li>");
+
+            /*** Add the content that the new tab points to. ***/
+            divTabs.html(divTabs.html() + "<div id='" + contentDivId + "'><form><fieldset>" + sampleContent + "</form></fieldset></div>");
+
+            /*** Re-initialize the tab widget, and make the new tab the "active" one. ***/
+            divTabs.tabs({ active: (tabCounter -1) }).promise().done(function(){
+
+                alert(window.innerHeight + ' ' + $('#table' + tabCounter).height());
+                $('#table' + tabCounter).DataTable({
+                    serverSide: false,
+                    processing: true,
+                    ajax: {
+                        url: '/spatial_search',
+                        type: 'POST',
+                        data: function ( d ) {
+                            d.geography = wkt;
+                            d.start = 0;
+                            d.limit = 15;
+                            d.type = "Qual";
+                            d.test = "yes";
+                        }
+                    },
+                    columns: [
+                        { data: "survey_short_title" },
+                        { data: "date" },
+                        { data: "survey_id" },
+                        { data: "area" },
+                        {
+                            "targets": -1,
+                            "data": null,
+                            "defaultContent": "<div class='btn btn-info show_questions'>Q's</div>"
+                        }
+                    ]
+                });
+
+            });
+            $("#divTabs").tabs({ active: 1 });
+
+            {#            $('#txtTabName').val('Tab ' + tabCounter);#}
+
+        }
+
+    </script>
+
+{% endblock %}
+
+{% block content %}
+
+
+    <body style="font-size: 62.5%; font-family: Trebuchet MS, Arial, Helvetica, Verdana, sans-serif;">
+
+    {#    <label for="txtTabName">New Tab Name:</label>#}
+    {#    <input type="text" id="txtTabName" value="Tab 3" />#}
+    {#    <button onclick="AddNewTab($('#txtTabName').val());">Create Tab</button>#}
+    {#    <br /><br />#}
+
+    <div id="divTabs" style="width:100%;">
+        <ul id="ulTabs">
+            <li><a href="#mapTab1">Map</a></li>
+            <li><a href="#ResultsTab2">Results</a></li>
+        </ul>
+        <div id="mapTab1" style="height: calc(100% - 40px)">
+            <div id="map" style="height: 100%;"></div>
+        </div>
+        <div id="ResultsTab2">
+            <div id="resTabs" style="width:100%;">
+                <ul id="ulResTabs">
+                    <li><a href="#resTab1">Tab 1</a></li>
+                    <li><a href="#resTab2">Tab 2</a></li>
+                </ul>
+                <div id="resTab1" style="height: calc(100% - 80px)">
+
+                </div>
+                <div id="resTab2">
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+{% endblock %}
+
+</body>

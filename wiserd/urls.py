@@ -21,6 +21,9 @@ from dataportal import views
 urlpatterns = [
 
     url(r'^$', views.index, name='home'),
+
+    url(r'^test', views.test, name='test'),
+
     url(r'^about_us', views.index, name='about_us'),
     url(r'^software', views.index, name='software'),
     url(r'^help', views.index, name='help'),
