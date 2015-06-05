@@ -62,12 +62,14 @@ def survey_metadata(request, wiserd_id):
 
     surveys_format = pprint.pformat(survey_models, indent=4)
 
-    return render(request, 'survey_data.html',
-                  {'data': True,
-                   'msg': 'msg',
-                   'survey_data': surveys,
-                   'survey_data_format': surveys_format},
-                  context_instance=RequestContext(request))
+    # return render(request, 'survey_data.html',
+    #               {'data': True,
+    #                'msg': 'msg',
+    #                'survey_data': surveys,
+    #                'survey_data_format': surveys_format},
+    #               context_instance=RequestContext(request))
+
+    return HttpResponse(json.dumps(surveys, indent=4), content_type="application/json")
 
 
 def login(request):
@@ -174,16 +176,18 @@ def data_autocomplete(request):
 @csrf_exempt
 def get_metadata(request):
 
+    print request.POST
     data = []
     rnd = Random()
+    table = request.POST.get('table', 'no_table')
 
     for i in range(0, rnd.randint(5, 50)):
         data.append({
-            'a': rnd.randint(1, 10),
-            'b': rnd.randint(1, 10),
-            'c': rnd.randint(1, 10),
-            'd': rnd.randint(1, 10),
-            'e': rnd.randint(1, 10)
+            'a': str(rnd.randint(1, 10)) + table,
+            'b': str(rnd.randint(1, 10)) + table,
+            'c': str(rnd.randint(1, 10)) + table,
+            'd': str(rnd.randint(1, 10)) + table,
+            'e': str(rnd.randint(1, 10)) + table
         })
 
     response_data = {

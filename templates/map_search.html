@@ -3,6 +3,174 @@
 
 {% block content %}
     <script>
+        var uid_counter = 0;
+        function nextUID(){
+            uid_counter ++;
+            return uid_counter;
+        }
+
+        function AddNewTab(survey_id) {
+            var dialogID = nextUID();
+
+            var survey_table_description = {
+                'tabs' : [
+                    {
+                        'title': 'Survey',
+                        'id': 'survey_tab_' + dialogID,
+                        'url': '/metadata/survey/' + survey_id,
+                        'columns': [
+                            {data: "a"},
+                            {data: "b"},
+                            {data: "c"},
+                            {data: "d"}
+                        ]
+                    },
+                    {
+                        'title': 'Dublin Core',
+                        'id': 'dublin_core_tab_' + dialogID,
+                        'columns': [
+                            {data: "a"},
+                            {data: "b"},
+                            {data: "c"},
+                            {data: "d"}
+                        ]
+                    },
+                    {
+                        'title': 'Question',
+                        'id': 'question_tab_' + dialogID,
+                        'columns': [
+                            {data: "a"},
+                            {data: "b"},
+                            {data: "c"},
+                            {data: "d"}
+                        ]
+                    },
+                    {
+                        'title': 'Results',
+                        'id': 'results_tab_' + dialogID,
+                        'columns': [
+                            {data: "a"},
+                            {data: "b"},
+                            {data: "c"},
+                            {data: "d"}
+                        ]
+                    }
+                ]
+            };
+
+
+            var surveyDialog = $('<div id="survey_dialog_' + dialogID + '" title="Surveys Description ' + dialogID + '"/>');
+            {#            surveyDialog.css({paddingTop: 0});#}
+            var surveyDialogTabList = $('<ul id="surveyDialogTabList_' + dialogID + '">');
+            surveyDialog.append(surveyDialogTabList);
+
+            for(var i = 0; i < survey_table_description.tabs.length; i++) {
+                var tabData = survey_table_description.tabs[i];
+                surveyDialogTabList.html(surveyDialogTabList.html()
+                + "<li><a href='#tableWrapping_" + tabData.id + "'>" + tabData.title + "</a></li>");
+
+                var tableContent = "<table id='table_" + tabData.id + "' class='display'>";
+                tableContent += '<thead><tr>';
+
+                for(var j = 0; j < tabData.columns.length; j++) {
+                    var columnData = tabData.columns[j];
+                    tableContent += '<td>' + columnData.data + '</td>';
+                }
+
+                tableContent += '</tr></thead>';
+
+                var tableWrapping = $('<div id="tableWrapping_' + tabData.id + '"/>');
+
+                surveyDialog.append(tableWrapping.append(tableContent));
+
+            }
+
+            var dialogOptions = {
+                modal: false,
+                autoOpen: false,
+                height: window.innerHeight * 0.8,
+                width: window.innerWidth * 0.8,
+                buttons: {
+                    {#                    Close: function() {#}
+                    {#                        surveyDialog.dialog( "close" );#}
+                    {#                    }#}
+                },
+                close: function() {}
+            };
+
+            var dialogExtendOptions = {
+                "closable" : true,
+                "maximizable" : true,
+                "minimizable" : true,
+                "minimizeLocation" : 'left',
+                "collapsable" : true,
+                "dblclick" : 'minimize',
+                "titlebar" : false
+            };
+
+            surveyDialog.dialog(dialogOptions).dialogExtend(dialogExtendOptions);
+
+            surveyDialog.on( "dialogopen", function( event, ui ) {
+
+                for(var k = 0; k < survey_table_description.tabs.length; k++) {
+                    var tabData2 = survey_table_description.tabs[k];
+
+                    $('#table_' + tabData2.id).DataTable({
+                        serverSide: false,
+                        processing: true,
+                        ajax: {
+                            url: '/get_metadata',
+                            type: 'POST',
+                            data: function ( d ) {
+                                d.test = true;
+                                d.words = 'some stuff';
+                                d.table = tabData2.id
+                            }
+                        },
+                        columns: tabData2.columns
+                    });
+
+                }
+            }).dialog("open");
+
+
+            surveyDialog.tabs({
+                heightStyle: "fill",
+                active: 1,
+                resize: function(event, ui) {
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+
+                },
+                activate: function(event, ui) {
+                    console.log('fired 3');
+
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+                }
+            });
+
+
+            {#            for(var k = 0; k < survey_table_description.tabs.length; k++) {#}
+            {#                var tabData2 = survey_table_description.tabs[k];#}
+            {##}
+            {#                $('#table_' + tabData2.id).DataTable({#}
+            {#                    serverSide: false,#}
+            {#                    processing: true,#}
+            {#                    ajax: {#}
+            {#                        url: '/get_metadata',#}
+            {#                        type: 'POST',#}
+            {#                        data: function ( d ) {#}
+            {#                            d.test = true;#}
+            {#                            d.words = 'some stuff';#}
+            {#                            d.table = tabData2.id#}
+            {#                        }#}
+            {#                    },#}
+            {#                    columns: tabData2.columns#}
+            {#                });#}
+            {##}
+            {#            }#}
+
+        }
+
 
         $(document).ready(function () {
             var wkt = '';
@@ -96,6 +264,9 @@
             var res_table = $('#res_table').DataTable({
                 serverSide: false,
                 processing: true,
+                {#                scrollY: "50px",#}
+                {#                dom: "frtiS",#}
+                {#                paging: false,#}
                 ajax: {
                     url: '/spatial_search',
                     type: 'POST',
@@ -127,7 +298,9 @@
                     var data = res_table.row($(this).parents('tr')).data();
                     var questions = '<to be added here>';
                     {#                    alert(data['survey_id'] + " questions are " + questions);#}
-                    show_survey_dialog(data['survey_id']);
+                    {#                    show_survey_dialog(data['survey_id']);#}
+
+                    AddNewTab(data['survey_id'] );
                 });
             }
             attach_question_buttons();
@@ -138,9 +311,9 @@
                 height: window.innerHeight * 0.8,
                 width: window.innerWidth * 0.8,
                 buttons: {
-                    Close: function() {
-                        spatial_dialog.dialog( "close" );
-                    }
+                    {#                    Close: function() {#}
+                    {#                        spatial_dialog.dialog( "close" );#}
+                    {#                    }#}
                 },
                 close: function() {}
             }).dialogExtend(
@@ -162,124 +335,11 @@
             }
 
 
-            $('#survey_tabs').tabs();
-            var survey_dialog = $("#survey_dialog_form" ).dialog({
-                modal: false,
-                autoOpen: false,
-                height: window.innerHeight * 0.8,
-                width: window.innerWidth * 0.8,
-                {#                modal: true,#}
-                buttons: {
-                    Close: function() {
-                        survey_dialog.dialog( "close" );
-                    }
-                },
-                close: function() {}
-            }).bind("dialogextendload", function(evt) {
-{#                prep_survey_dialog('1234567');#}
-
-            }).dialogExtend(
-                    {
-                        "closable" : true,
-                        "maximizable" : true,
-                        "minimizable" : true,
-                        "minimizeLocation" : 'left',
-                        "collapsable" : true,
-                        "dblclick" : 'minimize',
-                        "titlebar" : false
-                    }
-            );
-
-            function prep_survey_dialog(survey_id) {
-
-                var dc_table = $('#dublin_core_table').DataTable({
-                    serverSide: false,
-                    processing: true,
-                    ajax: {
-                        url: '/get_metadata',
-                        type: 'POST',
-                        data: function (d) {
-                            d.survey_id = '';
-                            d.test = "yes";
-                        }
-                    },
-                    columns: [
-                        {data: "a"},
-                        {data: "b"},
-                        {data: "c"},
-                        {data: "d"}
-                    ]
-                });
-
-                var survey_table = $('#survey_table').DataTable({
-                    serverSide: false,
-                    processing: true,
-                    ajax: {
-                        url: '/get_metadata',
-                        type: 'POST',
-                        data: function (d) {
-                            d.survey_id = '';
-                            d.test = "yes";
-                        }
-                    },
-                    columns: [
-                        {data: "a"},
-                        {data: "b"},
-                        {data: "c"},
-                        {data: "d"}
-                    ]
-                });
-
-                var question_table = $('#question_table').DataTable({
-                    serverSide: false,
-                    processing: true,
-                    ajax: {
-                        url: '/get_metadata',
-                        type: 'POST',
-                        data: function (d) {
-                            d.survey_id = '';
-                            d.test = "yes";
-                        }
-                    },
-                    columns: [
-                        {data: "a"},
-                        {data: "b"},
-                        {data: "c"},
-                        {data: "d"}
-                    ]
-                });
-
-                var question_results_data_table = $('#question_results_data_table').DataTable({
-                    serverSide: false,
-                    processing: true,
-                    ajax: {
-                        url: '/get_metadata',
-                        type: 'POST',
-                        data: function (d) {
-                            d.survey_id = '';
-                            d.test = "yes";
-                        }
-                    },
-                    columns: [
-                        {data: "a"},
-                        {data: "b"},
-                        {data: "c"},
-                        {data: "d"}
-                    ]
-                });
-
-                {##}
-                {#                dc_table.ajax.reload();#}
-                survey_table.ajax.reload();
-                {#                question_table.ajax.reload();#}
-                {#                question_results_data_table.ajax.reload();#}
-            }
-
-
-                        function show_survey_dialog(){
-                survey_dialog.dialog("open");
-
-            }
+            $('#survey_tabs').tabs({
+                activate: function(event, ui) {
+                    $( $.fn.dataTable.tables( true ) ).DataTable().draw();
+                }
+            });
         });
 
 
@@ -303,15 +363,15 @@
                         <th>Options</th>
                     </tr>
                     </thead>
-                    <tfoot>
-                    <tr>
-                        <th>Survey Title</th>
-                        <th>Date</th>
-                        <th>Survey ID</th>
-                        <th>Area</th>
-                        <th>Options</th>
-                    </tr>
-                    </tfoot>
+                    {#                    <tfoot>#}
+                    {#                    <tr>#}
+                    {#                        <th>Survey Title</th>#}
+                    {#                        <th>Date</th>#}
+                    {#                        <th>Survey ID</th>#}
+                    {#                        <th>Area</th>#}
+                    {#                        <th>Options</th>#}
+                    {#                    </tr>#}
+                    {#                    </tfoot>#}
                     <tbody>
                     <tr><td></td><td></td><td></td><td></td><td></td></tr>
                     <tr><td></td><td></td><td></td><td></td><td></td></tr>
@@ -322,175 +382,13 @@
                 </table>
 
                 <!-- Allow form submission with keyboard without duplicating the dialog button -->
-                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+                {#                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">#}
             </fieldset>
         </form>
     </div>
 
-    <div id="survey_dialog_form" title="Surveys Description">
-        <div id="survey_tabs">
-            <ul>
-                <li>
-                    <a href="#survey_tabs-1">Tab 1</a>
-                </li>
-                <li>
-                    <a href="#survey_tabs-2">Tab 2</a>
-                </li>
-                <li>
-                    <a href="#survey_tabs-3">Tab 3</a>
-                </li>
-                <li>
-                    <a href="#survey_tabs-4">Tab 4</a>
-                </li>
-            </ul>
 
-            <div id="survey_tabs-1">
-                <form>
-                    <fieldset>
-                        <table id="survey_table" class="display" style="height: 100px;">
-                            <thead>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </thead>
-                            <tfoot>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </tfoot>
-                            <tbody>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            </tbody>
-                        </table>
 
-                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
-                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-                    </fieldset>
-                </form>
-
-            </div>
-            <div id="survey_tabs-2">
-                <form>
-                    <fieldset>
-                        <table id="dublin_core_table" class="display" style="height: 100px;">
-                            <thead>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </thead>
-                            <tfoot>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </tfoot>
-                            <tbody>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
-                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-                    </fieldset>
-                </form>
-            </div>
-            <div id="survey_tabs-3">
-                <form>
-                    <fieldset>
-                        <table id="question_table" class="display" style="height: 100px;">
-                            <thead>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </thead>
-                            <tfoot>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </tfoot>
-                            <tbody>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
-                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-                    </fieldset>
-                </form>
-            </div>
-            <div id="survey_tabs-4">
-                <form>
-                    <fieldset>
-                        <table id="question_results_data_table" class="display" style="height: 100px;">
-                            <thead>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </thead>
-                            <tfoot>
-                            <tr>
-                                <th>Survey Title</th>
-                                <th>Date</th>
-                                <th>Survey ID</th>
-                                <th>Area</th>
-                                <th>Options</th>
-                            </tr>
-                            </tfoot>
-                            <tbody>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            <tr><td></td><td></td><td></td><td></td><td></td></tr>
-                            </tbody>
-                        </table>
-
-                        <!-- Allow form submission with keyboard without duplicating the dialog button -->
-                        <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
-                    </fieldset>
-                </form>
-            </div>
-        </div>
-    </div>
 
 {% endblock %}
 

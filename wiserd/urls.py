@@ -42,9 +42,10 @@ urlpatterns = [
 
     url(r'^data_autocomplete', views.data_autocomplete, name='data.autocomplete'),
     url(r'^get_metadata', views.get_metadata, name='data.get_metadata'),
+    # url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.get_metadata, name='data.get_metadata'),
 
-    url(r'^dc_info', views.dc_info, name='dc_info'),
-    url(r'^survey_metadata/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
+    url(r'^metadata/survey/dublin_core', views.dc_info, name='dc_info'),
+    url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
     url(r'^spatial_search', views.spatial_search, name='spatial_search'),
 

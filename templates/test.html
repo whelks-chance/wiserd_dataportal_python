@@ -14,10 +14,18 @@
         var wkt = '';
 
         $(document).ready(function () {
-            $("#divTabs").tabs().height(window.innerHeight - 50);
-            $("#resTabs").tabs().height($("#divTabs").height() - $('#ulTabs').height() - 4).css({padding: 0});;
-            $("#ResultsTab2").css({padding: 0});
 
+            $("#main").height(window.innerHeight - 50);
+            $("#divTabs").tabs({heightStyle: "fill"});
+            $("#resTabs").tabs({
+{#                heightStyle: "fill",#}
+                "activate": function(event, ui) {
+                    console.log('fired 2');
+
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+                }});
+            {#                    .height($("#divTabs").height() - $('#ulTabs').height() - 4).css({padding: 0});#}
+{#            $("#ResultsTab2").css({padding: 0});#}
 
             var map = L.map('map').setView([51.53181, -3.24687], 10);
 
@@ -100,21 +108,20 @@
 
                 AddNewTab();
             }
+
         });
-
-
 
         var tabCounter = 2;
 
         function AddNewTab() {
             tabCounter++;
 
-            var divTabs = $("#resTabs");
-            var ul = $("#ulResTabs");
+            var resTabs = $("#divTabs");
+            var ul = $("#ulTabs");
             var contentDivId = "divTab" + tabCounter;
             {#            var sampleContent = "<p>Sample content for the " + tabCounter + " tab.</p>";#}
 
-            var spatialContent = "<table id='table" + tabCounter + "' class='display' style='height: 100px;'>" +
+            var spatialContent = "<table id='table" + tabCounter + "' class='display'>" +
                     "<thead><tr><th>Survey Title</th><th>Date</th><th>Survey ID</th><th>Area</th><th>Options</th></tr></thead>" +
                     "<tfoot><tr><th>Survey Title</th><th>Date</th><th>Survey ID</th><th>Area</th><th>Options</th></tr></tfoot>" +
                     "<tbody>" +
@@ -128,47 +135,68 @@
             var sampleContent = spatialContent;
 
             /*** "Destroy" current tab widget temporarily. (...re-initialized later) ***/
-            divTabs.tabs("destroy");
+            resTabs.tabs("destroy");
 
             /*** Add the new LI element for the tab, and point it to the content's id. ***/
             ul.html(ul.html() + "<li><a href='#" + contentDivId + "'>Tab " + tabCounter + "</a></li>");
 
             /*** Add the content that the new tab points to. ***/
-            divTabs.html(divTabs.html() + "<div id='" + contentDivId + "'><form><fieldset>" + sampleContent + "</form></fieldset></div>");
+            {#            style='overflow: scroll'#}
+            resTabs.html(resTabs.html() + "<div id='" + contentDivId + "' style='height: " + $('#ResultsTab2').height() + "'><form><fieldset>" + sampleContent + "</form></fieldset></div>");
 
             /*** Re-initialize the tab widget, and make the new tab the "active" one. ***/
-            divTabs.tabs({ active: (tabCounter -1) }).promise().done(function(){
-
-                alert(window.innerHeight + ' ' + $('#table' + tabCounter).height());
-                $('#table' + tabCounter).DataTable({
-                    serverSide: false,
-                    processing: true,
-                    ajax: {
-                        url: '/spatial_search',
-                        type: 'POST',
-                        data: function ( d ) {
-                            d.geography = wkt;
-                            d.start = 0;
-                            d.limit = 15;
-                            d.type = "Qual";
-                            d.test = "yes";
-                        }
-                    },
-                    columns: [
-                        { data: "survey_short_title" },
-                        { data: "date" },
-                        { data: "survey_id" },
-                        { data: "area" },
-                        {
-                            "targets": -1,
-                            "data": null,
-                            "defaultContent": "<div class='btn btn-info show_questions'>Q's</div>"
-                        }
-                    ]
-                });
-
+            resTabs.tabs({
+                heightStyle: "fill",
+                active: (tabCounter -1),
+                {#                overflow: 'auto',#}
+                activate: function(event, ui) {
+                    console.log('fired 1');
+                    console.log($.fn.dataTable.tables( true ));
+                    $( $.fn.dataTable.tables( true ) ).DataTable().draw();
+                }
             });
-            $("#divTabs").tabs({ active: 1 });
+
+            {#                alert(window.innerHeight + ' ' + $('#table' + tabCounter).height());#}
+            {#                                .css({height: $('#ResultsTab2').height()}) #}
+            $('#table' + tabCounter).DataTable({
+                serverSide: false,
+                processing: true,
+                {#                scrollY: divTabs.height() - 150,#}
+                {#                    jQueryUI: true,#}
+                scrollCollapse: true,
+                ajax: {
+                    url: '/spatial_search',
+                    type: 'POST',
+                    data: function ( d ) {
+                        d.geography = wkt;
+                        d.start = 0;
+                        d.limit = 15;
+                        d.type = "Qual";
+                        d.test = "yes";
+                    }
+                },
+                columns: [
+                    { data: "survey_short_title" },
+                    { data: "date" },
+                    { data: "survey_id" },
+                    { data: "area" },
+                    {
+                        "targets": -1,
+                        "data": null,
+                        "defaultContent": "<div class='btn btn-info show_questions'>Q's</div>"
+                    }
+                ]
+            });
+
+            $("#divTabs").tabs({
+                heightStyle: "fill",
+                active: 1,
+                activate: function(event, ui) {
+                    console.log('fired 3');
+
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+                }
+            });
 
             {#            $('#txtTabName').val('Tab ' + tabCounter);#}
 
@@ -188,25 +216,29 @@
     {#    <button onclick="AddNewTab($('#txtTabName').val());">Create Tab</button>#}
     {#    <br /><br />#}
 
-    <div id="divTabs" style="width:100%;">
-        <ul id="ulTabs">
-            <li><a href="#mapTab1">Map</a></li>
-            <li><a href="#ResultsTab2">Results</a></li>
-        </ul>
-        <div id="mapTab1" style="height: calc(100% - 40px)">
-            <div id="map" style="height: 100%;"></div>
-        </div>
-        <div id="ResultsTab2">
-            <div id="resTabs" style="width:100%;">
-                <ul id="ulResTabs">
-                    <li><a href="#resTab1">Tab 1</a></li>
-                    <li><a href="#resTab2">Tab 2</a></li>
-                </ul>
-                <div id="resTab1" style="height: calc(100% - 80px)">
+    <div id="main">
+        <div id="divTabs" style="width:100%;">
+            <ul id="ulTabs">
+                <li><a href="#mapTab1">Map</a></li>
+                <li><a href="#ResultsTab2">Results</a></li>
+            </ul>
 
-                </div>
-                <div id="resTab2">
+            <div id="mapTab1" style="height: calc(100% - 40px); padding: 0">
+                <div id="map" style="height: 100%"></div>
+            </div>
+            <div id="ResultsTab2" style="height: calc(100% - 80px)">
+                <div id="resTabs" style="width:100%;">
+                    <ul id="ulResTabs">
+                        <li><a href="#resTab1">Tab 1</a></li>
+                        <li><a href="#resTab2">Tab 2</a></li>
+                    </ul>
+                    {#                    height: calc(100% - 80px); #}
+                    <div id="resTab1" style="background-color: #ffff00">
 
+                    </div>
+                    <div id="resTab2" style="background-color: green">
+
+                    </div>
                 </div>
             </div>
         </div>
