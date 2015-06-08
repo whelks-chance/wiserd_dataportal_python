@@ -1,7 +1,10 @@
 import json
+from bson import json_util
 import pprint
 from random import Random
+import datetime
 from django.contrib import auth
+from django.core import serializers
 from django.db import connections
 from django.http import HttpResponse
 from django.shortcuts import render
@@ -37,6 +40,7 @@ def dc_info(request):
                   context_instance=RequestContext(request))
 
 
+@csrf_exempt
 def survey_metadata(request, wiserd_id):
 
     # survey_link = models.QuestionLink
@@ -46,9 +50,11 @@ def survey_metadata(request, wiserd_id):
     wiserd_id = wiserd_id.strip()
 
     # survey_models = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values_list('surveyid', 'identifier', 'survey_title')
-    survey_models = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values_list("surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata")
+    survey_models = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values("surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata")
 
     print survey_models.query
+
+    keys = ["surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata"]
 
     surveys = []
 
@@ -56,11 +62,29 @@ def survey_metadata(request, wiserd_id):
 
     for survey_model in survey_models:
         print survey_model
+
+        print list(survey_model)
+
+        # data = {}
+        # for field in keys:
+        #     # print type(field), field
+        #     if type(field) is datetime.date or type(field) is datetime.datetime:
+        #         data[field] = str(survey_model.get(field))
+        #     else:
+        #         data[field] = survey_model.get(field)
+
         surveys.append({
-            'data': survey_model
+            'data': survey_model,
+            'wiserd_id': wiserd_id
         })
 
-    surveys_format = pprint.pformat(survey_models, indent=4)
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'survey_metadata',
+        'survey_data': surveys
+    }
+
+    # surveys_format = pprint.pformat(survey_models, indent=4)
 
     # return render(request, 'survey_data.html',
     #               {'data': True,
@@ -69,7 +93,18 @@ def survey_metadata(request, wiserd_id):
     #                'survey_data_format': surveys_format},
     #               context_instance=RequestContext(request))
 
-    return HttpResponse(json.dumps(surveys, indent=4), content_type="application/json")
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
+
+
+def date_handler(obj):
+    if isinstance(obj, datetime.datetime):
+        return obj.strftime('%Y-%m-%d T %H:%M:%S %Z')
+    elif isinstance(obj, datetime.date):
+        return obj.strftime('%Y-%m-%d')
+    # Let the base class default method raise the TypeError
+    else:
+        enc = json.JSONEncoder()
+        return enc.default(enc, obj)
 
 
 def login(request):
@@ -168,10 +203,10 @@ def do_advanced_search(request):
                   context_instance=RequestContext(request))
 
 
-
 def data_autocomplete(request):
     response_data = {}
     return HttpResponse(json.dumps(response_data, indent=4), content_type="application/json")
+
 
 @csrf_exempt
 def get_metadata(request):

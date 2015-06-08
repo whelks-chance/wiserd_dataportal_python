@@ -3,6 +3,8 @@
 
 {% block content %}
     <script>
+
+
         var uid_counter = 0;
         function nextUID(){
             uid_counter ++;
@@ -11,11 +13,11 @@
 
         function AddNewTab(survey_id) {
             var dialogID = nextUID();
-
             var survey_table_description = {
                 'tabs' : [
                     {
                         'title': 'Survey',
+                        'style': 'form',
                         'id': 'survey_tab_' + dialogID,
                         'url': '/metadata/survey/' + survey_id,
                         'columns': [
@@ -23,10 +25,12 @@
                             {data: "b"},
                             {data: "c"},
                             {data: "d"}
-                        ]
+                        ],
+                        'fields': [{'display': true, 'displayName': 'surveyid', 'id': 'surveyid'},  {'display': true, 'displayName': 'identifier', 'id': 'identifier'},  {'display': true, 'displayName': 'survey_title', 'id': 'survey_title'},  {'display': true, 'displayName': 'datacollector', 'id': 'datacollector'},  {'display': true,   'displayName': 'collectionstartdate',   'id': 'collectionstartdate'},  {'display': true,   'displayName': 'collectionenddate',   'id': 'collectionenddate'},  {'display': true, 'displayName': 'moc_description', 'id': 'moc_description'},  {'display': true, 'displayName': 'samp_procedure', 'id': 'samp_procedure'},  {'display': true,   'displayName': 'collectionsituation',   'id': 'collectionsituation'},  {'display': true, 'displayName': 'surveyfrequency', 'id': 'surveyfrequency'},  {'display': true, 'displayName': 'surveystartdate', 'id': 'surveystartdate'},  {'display': true, 'displayName': 'surveyenddate', 'id': 'surveyenddate'},  {'display': true, 'displayName': 'des_weighting', 'id': 'des_weighting'},  {'display': true, 'displayName': 'samplesize', 'id': 'samplesize'},  {'display': true, 'displayName': 'responserate', 'id': 'responserate'},  {'display': true,   'displayName': 'descriptionofsamplingerror',   'id': 'descriptionofsamplingerror'},  {'display': true, 'displayName': 'dataproduct', 'id': 'dataproduct'},  {'display': true, 'displayName': 'dataproductid', 'id': 'dataproductid'},  {'display': true, 'displayName': 'location', 'id': 'location'},  {'display': true, 'displayName': 'link', 'id': 'link'},  {'display': true, 'displayName': 'notes', 'id': 'notes'},  {'display': true, 'displayName': 'user_id', 'id': 'user_id'},  {'display': true, 'displayName': 'created', 'id': 'created'},  {'display': true, 'displayName': 'updated', 'id': 'updated'},  {'display': true, 'displayName': 'long', 'id': 'long'},  {'display': true, 'displayName': 'short_title', 'id': 'short_title'},  {'display': true, 'displayName': 'spatialdata', 'id': 'spatialdata'}]
                     },
                     {
                         'title': 'Dublin Core',
+                        'style': 'table',
                         'id': 'dublin_core_tab_' + dialogID,
                         'columns': [
                             {data: "a"},
@@ -37,6 +41,7 @@
                     },
                     {
                         'title': 'Question',
+                        'style': 'table',
                         'id': 'question_tab_' + dialogID,
                         'columns': [
                             {data: "a"},
@@ -47,6 +52,7 @@
                     },
                     {
                         'title': 'Results',
+                        'style': 'table',
                         'id': 'results_tab_' + dialogID,
                         'columns': [
                             {data: "a"},
@@ -66,23 +72,42 @@
 
             for(var i = 0; i < survey_table_description.tabs.length; i++) {
                 var tabData = survey_table_description.tabs[i];
+
+                var tabWrapping = $('<div id="tabWrapping_' + tabData.id + '"/>');
                 surveyDialogTabList.html(surveyDialogTabList.html()
-                + "<li><a href='#tableWrapping_" + tabData.id + "'>" + tabData.title + "</a></li>");
+                + "<li><a href='#tabWrapping_" + tabData.id + "'>" + tabData.title + "</a></li>");
 
-                var tableContent = "<table id='table_" + tabData.id + "' class='display'>";
-                tableContent += '<thead><tr>';
+                if (tabData.style == 'table') {
 
-                for(var j = 0; j < tabData.columns.length; j++) {
-                    var columnData = tabData.columns[j];
-                    tableContent += '<td>' + columnData.data + '</td>';
+                    var tableContent = "<table id='table_" + tabData.id + "' class='display'>";
+                    tableContent += '<thead><tr>';
+                    for (var j = 0; j < tabData.columns.length; j++) {
+                        var columnData = tabData.columns[j];
+                        tableContent += '<td>' + columnData.data + '</td>';
+                    }
+                    tableContent += '</tr></thead>';
+                    tabWrapping.append(tableContent);
+                }
+                if (tabData.style == 'form') {
+                    var dataContent = "<form id='data_" + tabData.id + "' class='form form-horizontal well'>";
+
+                    for (var m = 0; m < tabData.fields.length; m++) {
+                        dataContent += ('<div class="control-group">' +
+                        '<label for="text_input_{0}" class="control-label">{1}</label>' +
+                        '<div class="controls">' +
+                        '<input type="text" class="input-block-level" name="text_input_{2}" id="text_input_{3}" size="20" value=""/>' +
+                        '</div></div>').format(
+                                tabData.fields[m].id,
+                                tabData.fields[m].displayName,
+                                tabData.fields[m].id,
+                                tabData.fields[m].id
+                        );
+                    }
+                    dataContent += "</form>";
+                    tabWrapping.append(dataContent);
                 }
 
-                tableContent += '</tr></thead>';
-
-                var tableWrapping = $('<div id="tableWrapping_' + tabData.id + '"/>');
-
-                surveyDialog.append(tableWrapping.append(tableContent));
-
+                surveyDialog.append(tabWrapping);
             }
 
             var dialogOptions = {
@@ -114,60 +139,64 @@
 
                 for(var k = 0; k < survey_table_description.tabs.length; k++) {
                     var tabData2 = survey_table_description.tabs[k];
+                    var that = this;
 
-                    $('#table_' + tabData2.id).DataTable({
-                        serverSide: false,
-                        processing: true,
-                        ajax: {
-                            url: '/get_metadata',
+                    if (tabData2.style == 'table') {
+                        $('#table_' + tabData2.id).DataTable({
+                            serverSide: false,
+                            processing: true,
+                            ajax: {
+                                url: '/get_metadata',
+                                type: 'POST',
+                                data: function (d) {
+                                    d.test = true;
+                                    d.words = 'some stuff';
+                                    d.table = tabData2.id
+                                }
+                            },
+                            columns: tabData2.columns
+                        });
+                    }
+                    if (tabData2.style == 'form') {
+                        $.ajax({
+                            url: tabData2.url,
                             type: 'POST',
-                            data: function ( d ) {
-                                d.test = true;
-                                d.words = 'some stuff';
-                                d.table = tabData2.id
+                            context: that,
+                            data: {
+
+                            },
+                            success: function(data) {
+                                console.log(data);
+
+                                console.log(data['survey_data'][0]['data']);
+
+                                for (var m = 0; m < tabData2.fields.length; m++) {
+                                    var field = tabData2.fields[m];
+
+                                    $('#text_input_{0}'.format(field.id)).val(data['survey_data'][0]['data'][field.id]);
+                                }
+
                             }
-                        },
-                        columns: tabData2.columns
                     });
-
                 }
-            }).dialog("open");
+
+            }
+        }).dialog("open");
 
 
-            surveyDialog.tabs({
-                heightStyle: "fill",
-                active: 1,
-                resize: function(event, ui) {
-                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+        surveyDialog.tabs({
+            heightStyle: "fill",
+            active: 0,
+            resize: function(event, ui) {
+                $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
 
-                },
-                activate: function(event, ui) {
-                    console.log('fired 3');
+            },
+            activate: function(event, ui) {
+                console.log('fired 3');
 
-                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
-                }
-            });
-
-
-            {#            for(var k = 0; k < survey_table_description.tabs.length; k++) {#}
-            {#                var tabData2 = survey_table_description.tabs[k];#}
-            {##}
-            {#                $('#table_' + tabData2.id).DataTable({#}
-            {#                    serverSide: false,#}
-            {#                    processing: true,#}
-            {#                    ajax: {#}
-            {#                        url: '/get_metadata',#}
-            {#                        type: 'POST',#}
-            {#                        data: function ( d ) {#}
-            {#                            d.test = true;#}
-            {#                            d.words = 'some stuff';#}
-            {#                            d.table = tabData2.id#}
-            {#                        }#}
-            {#                    },#}
-            {#                    columns: tabData2.columns#}
-            {#                });#}
-            {##}
-            {#            }#}
+                $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+            }
+        });
 
         }
 
@@ -340,9 +369,17 @@
                     $( $.fn.dataTable.tables( true ) ).DataTable().draw();
                 }
             });
+
+            String.prototype.format = function() {
+                var formatted = this;
+                for (var i = 0; i < arguments.length; i++) {
+                    var regexp = new RegExp('\\{'+i+'\\}', 'gi');
+                    formatted = formatted.replace(regexp, arguments[i]);
+                }
+                return formatted;
+            };
+
         });
-
-
 
     </script>
 
