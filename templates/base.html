@@ -92,7 +92,8 @@
 
             head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "jquery/ui/jquery-ui-1.11.4.custom/jquery-ui.min.css" %}'));
             head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "jquery/ui/jquery-ui-1.11.4.custom/jquery-ui.structure.min.css" %}'));
-            <!--head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "lostvisioins.css" %}'));-->
+{#            <!--head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "lostvisioins.css" %}'));-->#}
+            head.append( $('<link rel="stylesheet" type="text/css" />').attr('href', '{% static "dataportal.css" %}'));
 
         }
 load_css();

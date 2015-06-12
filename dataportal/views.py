@@ -346,6 +346,7 @@ def survey_questions(request, wiserd_id):
 
     data = []
     for question_model in questions_models:
+        # question_model_tidy = [a.strip() for a in question_model if type(a) == 'unicode']
         data.append(question_model)
 
     api_data = {
