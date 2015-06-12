@@ -20,40 +20,43 @@
                         'style': 'form',
                         'id': 'survey_tab_' + dialogID,
                         'url': '/metadata/survey/' + survey_id,
-                        'columns': [
-                            {data: "a"},
-                            {data: "b"},
-                            {data: "c"},
-                            {data: "d"}
-                        ],
+                        'columns': [],
                         'fields': [{'display': true, 'displayName': 'surveyid', 'id': 'surveyid'},  {'display': true, 'displayName': 'identifier', 'id': 'identifier'},  {'display': true, 'displayName': 'survey_title', 'id': 'survey_title'},  {'display': true, 'displayName': 'datacollector', 'id': 'datacollector'},  {'display': true,   'displayName': 'collectionstartdate',   'id': 'collectionstartdate'},  {'display': true,   'displayName': 'collectionenddate',   'id': 'collectionenddate'},  {'display': true, 'displayName': 'moc_description', 'id': 'moc_description'},  {'display': true, 'displayName': 'samp_procedure', 'id': 'samp_procedure'},  {'display': true,   'displayName': 'collectionsituation',   'id': 'collectionsituation'},  {'display': true, 'displayName': 'surveyfrequency', 'id': 'surveyfrequency'},  {'display': true, 'displayName': 'surveystartdate', 'id': 'surveystartdate'},  {'display': true, 'displayName': 'surveyenddate', 'id': 'surveyenddate'},  {'display': true, 'displayName': 'des_weighting', 'id': 'des_weighting'},  {'display': true, 'displayName': 'samplesize', 'id': 'samplesize'},  {'display': true, 'displayName': 'responserate', 'id': 'responserate'},  {'display': true,   'displayName': 'descriptionofsamplingerror',   'id': 'descriptionofsamplingerror'},  {'display': true, 'displayName': 'dataproduct', 'id': 'dataproduct'},  {'display': true, 'displayName': 'dataproductid', 'id': 'dataproductid'},  {'display': true, 'displayName': 'location', 'id': 'location'},  {'display': true, 'displayName': 'link', 'id': 'link'},  {'display': true, 'displayName': 'notes', 'id': 'notes'},  {'display': true, 'displayName': 'user_id', 'id': 'user_id'},  {'display': true, 'displayName': 'created', 'id': 'created'},  {'display': true, 'displayName': 'updated', 'id': 'updated'},  {'display': true, 'displayName': 'long', 'id': 'long'},  {'display': true, 'displayName': 'short_title', 'id': 'short_title'},  {'display': true, 'displayName': 'spatialdata', 'id': 'spatialdata'}]
                     },
                     {
                         'title': 'Dublin Core',
-                        'style': 'table',
+                        'style': 'form',
                         'id': 'dublin_core_tab_' + dialogID,
-                        'columns': [
-                            {data: "a"},
-                            {data: "b"},
-                            {data: "c"},
-                            {data: "d"}
-                        ]
+                        'url': '/metadata/survey/dublin_core/' + survey_id,
+                        'columns': [],
+                        'fields': [{'display': true, 'displayName': 'identifier', 'id': 'identifier'}, {'display': true, 'displayName': 'title', 'id': 'title'}, {'display': true, 'displayName': 'creator', 'id': 'creator'}, {'display': true, 'displayName': 'subject', 'id': 'subject'}, {'display': true, 'displayName': 'description', 'id': 'description'}, {'display': true, 'displayName': 'publisher', 'id': 'publisher'}, {'display': true, 'displayName': 'contributor', 'id': 'contributor'}, {'display': true, 'displayName': 'date', 'id': 'date'}, {'display': true, 'displayName': 'type', 'id': 'type'}, {'display': true, 'displayName': 'format', 'id': 'format'}, {'display': true, 'displayName': 'source', 'id': 'source'}, {'display': true, 'displayName': 'language', 'id': 'language'}, {'display': true, 'displayName': 'relation', 'id': 'relation'}, {'display': true, 'displayName': 'coverage', 'id': 'coverage'}, {'display': true, 'displayName': 'rights', 'id': 'rights'}, {'display': true, 'displayName': 'user_id', 'id': 'user_id'}, {'display': true, 'displayName': 'created', 'id': 'created'}, {'display': true, 'displayName': 'updated', 'id': 'updated'}]
                     },
                     {
                         'title': 'Question',
                         'style': 'table',
                         'id': 'question_tab_' + dialogID,
+                        'url': '/metadata/survey/questions/' + survey_id,
                         'columns': [
-                            {data: "a"},
-                            {data: "b"},
-                            {data: "c"},
-                            {data: "d"}
+                            {'data': 'qid'},
+                            {'data': 'literal_question_text'},
+                            {'data': 'questionnumber'},
+                            {'data': 'thematic_groups'},
+                            {'data': 'thematic_tags'},
+                            {'data': 'link_from'},
+                            {'data': 'subof'},
+                            {'data': 'type'},
+                            {'data': 'variableid'},
+                            {'data': 'notes'},
+                            {'data': 'user_id'},
+                            {'data': 'created'},
+                            {'data': 'updated'}
                         ]
                     },
                     {
                         'title': 'Results',
                         'style': 'table',
                         'id': 'results_tab_' + dialogID,
+                        'url': '/get_metadata',
                         'columns': [
                             {data: "a"},
                             {data: "b"},
@@ -65,15 +68,14 @@
             };
 
 
-            var surveyDialog = $('<div id="survey_dialog_' + dialogID + '" title="Surveys Description ' + dialogID + '"/>');
-            {#            surveyDialog.css({paddingTop: 0});#}
+            var surveyDialog = $('<div id="survey_dialog_' + dialogID + '" title="Surveys Description ' + survey_id + ' ' + dialogID + '"/>').css({padding: 0});
             var surveyDialogTabList = $('<ul id="surveyDialogTabList_' + dialogID + '">');
             surveyDialog.append(surveyDialogTabList);
 
             for(var i = 0; i < survey_table_description.tabs.length; i++) {
                 var tabData = survey_table_description.tabs[i];
 
-                var tabWrapping = $('<div id="tabWrapping_' + tabData.id + '"/>');
+                var tabWrapping = $('<div id="tabWrapping_' + tabData.id + '" style="padding: 10px"/>');
                 surveyDialogTabList.html(surveyDialogTabList.html()
                 + "<li><a href='#tabWrapping_" + tabData.id + "'>" + tabData.title + "</a></li>");
 
@@ -89,13 +91,13 @@
                     tabWrapping.append(tableContent);
                 }
                 if (tabData.style == 'form') {
-                    var dataContent = "<form id='data_" + tabData.id + "' class='form form-horizontal well'>";
-
+                    var dataContent = "<form id='data_" + tabData.id + "' class='form form-horizontal well' style='padding: 0; height: 100%'>";
+                    dataContent += "<div>{0}</div>".format(tabData.id);
                     for (var m = 0; m < tabData.fields.length; m++) {
                         dataContent += ('<div class="control-group">' +
-                        '<label for="text_input_{0}" class="control-label">{1}</label>' +
+                        '<label for="text_input_{0}" class="control-label col-sm-6">{1}</label>' +
                         '<div class="controls">' +
-                        '<input type="text" class="input-block-level" name="text_input_{2}" id="text_input_{3}" size="20" value=""/>' +
+                        '<input type="text" class="input-block-level col-sm-6" name="text_input_{2}" id="text_input_{3}" size="20" value=""/>' +
                         '</div></div>').format(
                                 tabData.fields[m].id,
                                 tabData.fields[m].displayName,
@@ -116,11 +118,13 @@
                 height: window.innerHeight * 0.8,
                 width: window.innerWidth * 0.8,
                 buttons: {
-                    {#                    Close: function() {#}
-                    {#                        surveyDialog.dialog( "close" );#}
-                    {#                    }#}
+{#                    Close: function() {#}
+{#                        $(this).remove(); #}
+{#                    }#}
                 },
-                close: function() {}
+                close: function() {
+                              $(this).remove();
+                }
             };
 
             var dialogExtendOptions = {
@@ -135,23 +139,31 @@
 
             surveyDialog.dialog(dialogOptions).dialogExtend(dialogExtendOptions);
 
+            {#            surveyDialog.tabbedDialog(dialogOptions, dialogExtendOptions);#}
+
             surveyDialog.on( "dialogopen", function( event, ui ) {
+                surveyDialog.css('overflow', 'hidden');
 
                 for(var k = 0; k < survey_table_description.tabs.length; k++) {
                     var tabData2 = survey_table_description.tabs[k];
-                    var that = this;
+
+                    console.log(tabData2.id);
 
                     if (tabData2.style == 'table') {
                         $('#table_' + tabData2.id).DataTable({
                             serverSide: false,
                             processing: true,
                             ajax: {
-                                url: '/get_metadata',
+                                url: tabData2.url,
                                 type: 'POST',
                                 data: function (d) {
                                     d.test = true;
                                     d.words = 'some stuff';
                                     d.table = tabData2.id
+                                },
+                                dataSrc: function ( json ) {
+                                    console.log(json['search_result_data']);
+                                    return json['search_result_data'];
                                 }
                             },
                             columns: tabData2.columns
@@ -161,42 +173,36 @@
                         $.ajax({
                             url: tabData2.url,
                             type: 'POST',
-                            context: that,
+                            tabDataRef : tabData2,
                             data: {
-
+                                'tabData': tabData2
                             },
                             success: function(data) {
-                                console.log(data);
-
-                                console.log(data['survey_data'][0]['data']);
-
-                                for (var m = 0; m < tabData2.fields.length; m++) {
-                                    var field = tabData2.fields[m];
-
-                                    $('#text_input_{0}'.format(field.id)).val(data['survey_data'][0]['data'][field.id]);
+                                for (var m = 0; m < this.tabDataRef.fields.length; m++) {
+                                    var field = this.tabDataRef.fields[m];
+                                    $('#text_input_{0}'.format(field.id)).val(data['search_result_data'][0]['data'][field.id]);
                                 }
-
                             }
-                    });
+                        });
+                    }
+
                 }
-
-            }
-        }).dialog("open");
+            }).dialog("open");
 
 
-        surveyDialog.tabs({
-            heightStyle: "fill",
-            active: 0,
-            resize: function(event, ui) {
-                $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+            surveyDialog.tabs({
+                heightStyle: "fill",
+                active: 0,
+                resize: function(event, ui) {
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
 
-            },
-            activate: function(event, ui) {
-                console.log('fired 3');
+                },
+                activate: function(event, ui) {
+                    console.log('fired 3');
 
-                $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
-            }
-        });
+                    $( $.fn.dataTable.tables( true ) ).DataTable().columns.adjust();
+                }
+            });
 
         }
 
@@ -316,7 +322,7 @@
                     {
                         "targets": -1,
                         "data": null,
-                        "defaultContent": "<div class='btn btn-info show_questions'>Q's</div>"
+                        "defaultContent": "<div class='btn btn-info show_questions'>Info</div>"
                     }
                 ]
             });
@@ -378,6 +384,26 @@
                 }
                 return formatted;
             };
+
+            $.fn.tabbedDialog = function (dialogOptions, dialogExtendOptions) {
+                this.tabs();
+                this.dialog(dialogOptions);
+                {#                        .dialogExtend(dialogExtendOptions);#}
+                var buttons = this.find('.ui-dialog-titlebar-buttonpane');
+                console.log(buttons);
+                var tabnav = this.find('.ui-tabs-nav');
+                console.log(tabnav);
+                tabnav.append($(buttons));
+
+                this.find('.ui-tab-dialog-close').append($('a.ui-dialog-titlebar-close'));
+                this.find('.ui-tab-dialog-close').css({'position':'absolute','right':'0', 'top':'23px'});
+                this.find('.ui-tab-dialog-close > a').css({'float':'none','padding':'0'});
+                var tabul = this.find('ul:first');
+                this.parent().addClass('ui-tabs').prepend(tabul).draggable('option','handle',tabul);
+                {#                this.siblings('.ui-dialog-titlebar').remove();#}
+                {#                tabul.addClass('ui-dialog-titlebar');#}
+            };
+
 
         });
 

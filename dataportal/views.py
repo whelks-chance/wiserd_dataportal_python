@@ -42,37 +42,14 @@ def dc_info(request):
 
 @csrf_exempt
 def survey_metadata(request, wiserd_id):
-
-    # survey_link = models.QuestionLink
-
-    # print wiserd_id
-
     wiserd_id = wiserd_id.strip()
 
-    # survey_models = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values_list('surveyid', 'identifier', 'survey_title')
     survey_models = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values("surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata")
 
-    print survey_models.query
-
-    keys = ["surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata"]
+    # keys = ["surveyid", "identifier", "survey_title", "datacollector", "collectionstartdate", "collectionenddate", "moc_description", "samp_procedure", "collectionsituation", "surveyfrequency", "surveystartdate", "surveyenddate", "des_weighting", "samplesize", "responserate", "descriptionofsamplingerror", "dataproduct", "dataproductid", "location", "link", "notes", "user_id", "created", "updated", "long", "short_title", "spatialdata"]
 
     surveys = []
-
-    # print survey_models
-
     for survey_model in survey_models:
-        print survey_model
-
-        print list(survey_model)
-
-        # data = {}
-        # for field in keys:
-        #     # print type(field), field
-        #     if type(field) is datetime.date or type(field) is datetime.datetime:
-        #         data[field] = str(survey_model.get(field))
-        #     else:
-        #         data[field] = survey_model.get(field)
-
         surveys.append({
             'data': survey_model,
             'wiserd_id': wiserd_id
@@ -81,17 +58,35 @@ def survey_metadata(request, wiserd_id):
     api_data = {
         'url': request.get_full_path(),
         'method': 'survey_metadata',
-        'survey_data': surveys
+        'search_result_data': surveys
     }
 
-    # surveys_format = pprint.pformat(survey_models, indent=4)
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
 
-    # return render(request, 'survey_data.html',
-    #               {'data': True,
-    #                'msg': 'msg',
-    #                'survey_data': surveys,
-    #                'survey_data_format': surveys_format},
-    #               context_instance=RequestContext(request))
+
+@csrf_exempt
+def survey_dc_data(request, wiserd_id):
+    wiserd_id = wiserd_id.strip()
+
+    survey_dc_models = models.survey_models.DcInfo.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values("identifier", "title", "creator", "subject", "description", "publisher", "contributor", "date", "type", "format", "source", "language", "relation", "coverage", "rights", "user_id", "created", "updated")
+
+    # print survey_dc_models.query
+
+    surveys = []
+    for dc_model in survey_dc_models:
+        # print dc_model
+        # print list(dc_model)
+
+        surveys.append({
+            'data': dc_model,
+            'wiserd_id': wiserd_id
+        })
+
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'survey_dc_data',
+        'search_result_data': surveys
+    }
 
     return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
 
@@ -103,8 +98,11 @@ def date_handler(obj):
         return obj.strftime('%Y-%m-%d')
     # Let the base class default method raise the TypeError
     else:
+        print (type(object), object)
+        print pprint.pformat(object.__dict__)
         enc = json.JSONEncoder()
         return enc.default(enc, obj)
+        # return obj
 
 
 def login(request):
@@ -335,3 +333,26 @@ def test(request):
     return render(request, 'test.html',
                   {'data': True, 'msg': 'msg'},
                   context_instance=RequestContext(request))
+
+@csrf_exempt
+def survey_questions(request, wiserd_id):
+    wiserd_id = wiserd_id.strip()
+
+    survey_model_ids = models.survey_models.Survey.objects.using('survey').all().filter(identifier__icontains=wiserd_id).values_list("surveyid", flat=True)
+
+    survey_question_link_models = models.survey_models.SurveyQuestionsLink.objects.using('survey').all().filter(surveyid__in=survey_model_ids).values_list('qid', flat=True)
+
+    questions_models = models.survey_models.Questions.objects.using('survey').filter(qid__in=survey_question_link_models).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+    data = []
+    for question_model in questions_models:
+        data.append(question_model)
+
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'survey_questions',
+        'search_result_data': data,
+        'wiserd_id': wiserd_id,
+        'survey_id': list(survey_model_ids)
+    }
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")

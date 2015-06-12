@@ -116,7 +116,7 @@ class QuestionLink(models.Model):
 
 
 class Questions(models.Model):
-    qid = models.CharField(max_length=300)
+    qid = models.CharField(primary_key=True, max_length=300)
     literal_question_text = models.TextField(blank=True, null=True)
     questionnumber = models.CharField(max_length=300, blank=True, null=True)
     thematic_groups = models.TextField(blank=True, null=True)
