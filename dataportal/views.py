@@ -58,7 +58,8 @@ def survey_metadata(request, wiserd_id):
     api_data = {
         'url': request.get_full_path(),
         'method': 'survey_metadata',
-        'search_result_data': surveys
+        'search_result_data': surveys,
+        'results_count': len(surveys),
     }
 
     return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
@@ -85,7 +86,8 @@ def survey_dc_data(request, wiserd_id):
     api_data = {
         'url': request.get_full_path(),
         'method': 'survey_dc_data',
-        'search_result_data': surveys
+        'search_result_data': surveys,
+        'results_count': len(surveys),
     }
 
     return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
@@ -353,7 +355,28 @@ def survey_questions(request, wiserd_id):
         'url': request.get_full_path(),
         'method': 'survey_questions',
         'search_result_data': data,
+        'results_count': len(data),
         'wiserd_id': wiserd_id,
         'survey_id': list(survey_model_ids)
+    }
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
+
+
+def search_survey_question(request, search_terms):
+
+    ors = search_terms.split(',')
+
+    questions_models = models.survey_models.Questions.objects.search(search_terms, raw=True).using('survey').values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+    data = []
+    for question_model in questions_models:
+        data.append(question_model)
+
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'search_survey_question',
+        'search_result_data': data,
+        'results_count': len(data),
+        'search_term': search_terms
     }
     return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")

@@ -1,5 +1,8 @@
 from __future__ import unicode_literals
 
+from djorm_pgfulltext.models import SearchManager
+from djorm_pgfulltext.fields import VectorField
+
 from django.contrib.gis.db import models
 
 from dataportal.models.new_models import *
@@ -129,7 +132,16 @@ class Questions(models.Model):
     user_id = models.CharField(max_length=25, blank=True, null=True)
     created = models.DateTimeField(blank=True, null=True)
     updated = models.DateTimeField(blank=True, null=True)
-    qtext_index = models.TextField(blank=True, null=True)  # This field type is a guess.
+    # qtext_index = models.TextField(blank=True, null=True)  # This field type is a guess.
+
+    qtext_index = VectorField()
+
+    objects = SearchManager(
+        fields = ('literal_question_text', 'notes'),
+        config = 'pg_catalog.english', # this is default
+        search_field = 'qtext_index', # this is default
+        auto_update_search_field = True
+    )
 
     class Meta:
         managed = False

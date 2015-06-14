@@ -50,6 +50,8 @@ urlpatterns = [
     url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
     url(r'^spatial_search', views.spatial_search, name='spatial_search'),
+    url(r'^metadata/search/survey/questions/(?P<search_terms>\S+)',
+        views.search_survey_question, name='search_survey_question'),
 
     url(r'^admin/', include(admin.site.urls)),
 
