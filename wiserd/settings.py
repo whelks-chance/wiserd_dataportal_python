@@ -41,6 +41,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'dataportal',
     'django.contrib.gis',
+    # 'django_extensions',
 
     'allauth',
     'allauth.account',

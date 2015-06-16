@@ -40,7 +40,7 @@ urlpatterns = [
     url(r'^map_search', views.map_search, name='map_search'),
 
     url(r'^data_autocomplete', views.data_autocomplete, name='data.autocomplete'),
-    url(r'^get_metadata', views.get_metadata, name='data.get_metadata'),
+    # url(r'^get_metadata', views.get_metadata, name='data.get_metadata'),
     # url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.get_metadata, name='data.get_metadata'),
 
     url(r'^metadata/dublin_core', views.dc_info, name='dc_info'),
@@ -50,6 +50,9 @@ urlpatterns = [
     url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
     url(r'^spatial_search', views.spatial_search, name='spatial_search'),
+    url(r'^search_survey_question_gui/(?P<search_terms>\S+)',
+        views.search_survey_question_gui, name='search_survey_question_gui'),
+
     url(r'^metadata/search/survey/questions/(?P<search_terms>\S+)',
         views.search_survey_question, name='search_survey_question'),
 

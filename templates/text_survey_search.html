@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+{% load url from future %}
+
+{% block content %}
+
+    <script>
+
+        $(document).ready(function () {
+
+
+            $('#text_search_table').DataTable({
+                serverSide: false,
+                processing: true,
+            autoWidth: false,
+                ajax: {
+                    url: "{% url 'search_survey_question' data.search_term %}",
+                    type: 'POST',
+                    {#                data: function (d) {#}
+                    {#                    d.test = true;#}
+                    {#                    d.words = 'some stuff';#}
+                    {#                    d.table = tabData2.id#}
+                    {#                },#}
+                    dataSrc: function ( json ) {
+                        return json['search_result_data'];
+                    }
+                },
+                columns: [
+                    {% for a in data.fields %}
+                        { data: "{{ a }}" },
+                    {% endfor %}
+                ]
+            });
+        });
+    </script>
+
+    <table id="text_search_table" class="display table-responsive">
+        <thead>
+        <tr>
+            {% for a in data.fields %}
+                <th>
+                    {{ a }}
+                </th>
+            {% endfor %}
+        </tr>
+        </thead>
+    </table>
+
+{% endblock %}

@@ -67,4 +67,69 @@ def build_ztab_table():
     return True
 
 
-build_ztab_table()
+def get_question_number(qid_start):
+    number_string_array = []
+
+    done = False
+    while not done:
+        if qid_start[-1] in ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']:
+            number_string_array.insert(0, qid_start[-1])
+            qid_start = qid_start[0:-1]
+        else:
+            done = True
+    return ''.join(number_string_array), qid_start
+
+
+def find_parents():
+
+    found_count = 0
+
+    # esseses = ['sssss', 'ssssss', 'sssssss', 'ssssssss', 'sssssssss', 'ssssssssss']
+
+    num_ses = 12
+
+    complete = []
+
+    while num_ses > 3:
+        num_ses -= 1
+
+        esses = ''.join('s' for a in range(0, num_ses))
+        questions_models = models.survey_models.Questions.objects.using('survey').filter(qid__endswith=esses).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+        print esses, len(esses), len(questions_models)
+
+        one_less_s = ''.join('s' for a in range(0, (num_ses-1)))
+
+        for question in questions_models:
+            if question['qid'].strip() not in complete:
+                qid = question['qid']
+
+                complete.append(qid.strip())
+
+                print qid.strip()
+
+                qid_start = qid.strip().split('-s')[0]
+
+                question_number, qid_start_without_number = get_question_number(qid_start)
+
+                potential_child_qid = qid_start_without_number + str(int(question_number) -1) + '-' + one_less_s
+
+                questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+                if len(questions_parent_models):
+                    for parent_question in questions_parent_models:
+                        print '*' + parent_question['qid'].strip() + '*'
+
+                        found_count += 1
+                else:
+
+                    questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+
+                print '\n'
+    print found_count
+    print len(complete)
+
+find_parents()
+
+# build_ztab_table()

@@ -194,6 +194,9 @@ def do_advanced_search(request):
     readable_query = ''
     all_survey_ids = []
     number_of_results_int = 100
+
+    response_data = text_search(request.GET.get('keyword', ''))
+
     return render(request, 'advanced_search_results.html',
                   {'results': response_data,
                    'query_array': request.GET,
@@ -362,21 +365,47 @@ def survey_questions(request, wiserd_id):
     return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
 
 
+@csrf_exempt
 def search_survey_question(request, search_terms):
 
     ors = search_terms.split(',')
+    api_data = text_search(search_terms)
+    api_data['url'] = request.get_full_path()
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
+
+
+def search_survey_question_gui(request, search_terms):
+    ors = search_terms.split(',')
+    api_data = text_search(search_terms)
+    api_data['url'] = request.get_full_path()
+    return render(request, 'text_survey_search.html',
+                  {'data': api_data},
+                  context_instance=RequestContext(request))
+
+
+def text_search(search_terms):
+    fields = ("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "type", "notes", "updated")
+
+    # q_terms = []
+    # for term in search_terms.split():
+    #     q_terms.append(Q())
+
+    search_terms = search_terms.replace(' ', ' & ')
+    search_terms = search_terms.replace('+', ' & ')
 
     questions_models = models.survey_models.Questions.objects.search(search_terms, raw=True).using('survey').values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
 
     data = []
     for question_model in questions_models:
+        if question_model['thematic_tags'] == 'System.Windows.Forms.ListBox+SelectedObjectCollection':
+            question_model['thematic_tags'] = ''
         data.append(question_model)
 
     api_data = {
-        'url': request.get_full_path(),
+        'fields': fields,
         'method': 'search_survey_question',
         'search_result_data': data,
         'results_count': len(data),
         'search_term': search_terms
     }
-    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
+    return api_data

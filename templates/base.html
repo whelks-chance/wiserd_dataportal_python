@@ -209,7 +209,7 @@ load_css();
                 </ul>
 
                 <form class="navbar-form navbar-right" id='search_form'
-                      action='{% url 'do_advanced_search' %}' method="get" role="search" method="post">{% csrf_token %}
+                      action='{% url 'do_advanced_search' %}' method="get" role="search">{% csrf_token %}
                     <input type="hidden" value="on" id="alternative_search" name="alternative_search">
                     <div class="form-group">
                         <input type="text" class="form-control quick-search-field fa" data-toggle="tooltip"
