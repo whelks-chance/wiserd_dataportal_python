@@ -1,7 +1,7 @@
 __author__ = 'ubuntu'
 
 
-class OldDBRouter(object):
+class NewDBRouter(object):
     """
     A router to control all database operations on models in the
     auth application.
@@ -11,10 +11,13 @@ class OldDBRouter(object):
         """
         Attempts to read auth models go to auth_db.
         """
+        print model._meta.object_name + 'bbbb'
 
-        if model._meta.app_label == 'dataportal':
+        # print model._meta, model._meta.app_label
+
+        if model._meta.app_label == 'newtables':
             print 'using new'
-            return 'survey'
+            return 'new'
         return 'default'
 
     def db_for_write(self, model, **hints):
@@ -22,25 +25,27 @@ class OldDBRouter(object):
         """
         Attempts to write auth models go to auth_db.
         """
+        print model._meta.object_name + 'aaaa'
 
-        if model._meta.app_label == 'dataportal':
+        # print model._meta, model._meta.app_label
+
+        if model._meta.app_label == 'newtables':
             print 'using new'
-            return 'survey'
+            return 'new'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
         """
         Allow relations if a model in the auth app is involved.
         """
-        if obj1._meta.app_label == 'dataportal' or \
-           obj2._meta.app_label == 'dataportal':
+        if obj1._meta.app_label == 'new' or \
+           obj2._meta.app_label == 'new':
            return True
         return None
 
     def allow_migrate(self, db, app_label, model=None, **hints):
 
         # print model._meta.app_label + ' old'
-        # print app_label
         # print model._meta
         # print model._meta.db_table + ' old'
         # print model._meta.object_name + ' old'
@@ -52,6 +57,7 @@ class OldDBRouter(object):
         # """
 
         # print app_label, db, model
-        if app_label == 'dataportal':
-            return db == 'survey'
+        if app_label == 'newtables':
+            # print app_label, db, db == 'new', model._meta.object_name, '\n'
+            return db == 'new'
         return None

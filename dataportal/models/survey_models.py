@@ -5,7 +5,7 @@ from djorm_pgfulltext.fields import VectorField
 
 from django.contrib.gis.db import models
 
-from dataportal.models.new_models import *
+# from dataportal.models.new_models import *
 
 
 class DcInfo(models.Model):
@@ -149,7 +149,7 @@ class Questions(models.Model):
 
 
 class QuestionsResponsesLink(models.Model):
-    qid = models.CharField(max_length=50)
+    qid = models.CharField(primary_key=True, max_length=50)
     responseid = models.CharField(max_length=50)
 
     class Meta:
@@ -178,7 +178,7 @@ class ResponseType(models.Model):
 
 
 class Responses(models.Model):
-    responseid = models.CharField(max_length=100)
+    responseid = models.CharField(primary_key=True, max_length=100)
     responsetext = models.TextField(blank=True, null=True)
     response_type = models.CharField(max_length=255)
     routetype = models.CharField(max_length=255, blank=True, null=True)

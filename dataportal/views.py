@@ -409,3 +409,68 @@ def text_search(search_terms):
         'search_term': search_terms
     }
     return api_data
+
+
+def survey_questions_results(request, question_id):
+    question_id = question_id.strip()
+
+    question_response_link_models = models.survey_models.QuestionsResponsesLink.objects.using('survey').all().filter(qid__icontains=question_id).values('responseid')
+
+    question_responses = []
+
+    if len(question_response_link_models):
+        question_response_models = models.survey_models.Responses.objects.using('survey').all().filter(responseid__in=question_response_link_models).values()
+
+        for question_response_model in question_response_models:
+            question_responses.append({
+                'data': question_response_model,
+                'question_id': question_id
+            })
+
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'survey_questions_results',
+        'search_result_data': question_responses,
+        'results_count': len(question_responses),
+    }
+
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")
+
+
+def survey_questions_results_table(request, question_id):
+    question_id = question_id.strip()
+
+    question_response_link_models = models.survey_models.QuestionsResponsesLink.objects.using('survey').all().filter(qid__icontains=question_id).values('responseid')
+
+    question_responses = []
+    columns = []
+
+    if len(question_response_link_models):
+        question_response_models = models.survey_models.Responses.objects.using('survey').all().filter(responseid__in=question_response_link_models).values()
+
+        cursor = connections['survey'].cursor()
+        cursor.execute("select * from " + question_response_models[0]['table_ids'])
+        ztab_tables = cursor.fetchall()
+
+        # print ztab_tables
+
+        for question_response_model in ztab_tables:
+            question_responses.append(question_response_model)
+
+        cursor.execute("select column_name from information_schema.columns where table_name = '" + question_response_models[0]['table_ids'] + "'")
+        column_names = cursor.fetchall()
+
+        # print column_names
+
+        for column_data in column_names:
+            columns.append(column_data[0])
+
+    api_data = {
+        'url': request.get_full_path(),
+        'method': 'survey_questions_results_table',
+        'search_result_data': question_responses,
+        'columns': columns,
+        'results_count': len(question_responses),
+    }
+
+    return HttpResponse(json.dumps(api_data, indent=4, default=date_handler), content_type="application/json")

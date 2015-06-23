@@ -122,14 +122,69 @@ def find_parents():
 
                         found_count += 1
                 else:
+                    potential_child_qid_non_decrement = qid_start + '-' + one_less_s
+                    questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid_non_decrement).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
 
-                    questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+                    for parent_question in questions_parent_models:
+                        print '*-*' + parent_question['qid'].strip() + '*-*'
+
+                        found_count += 1
 
 
                 print '\n'
     print found_count
     print len(complete)
 
-find_parents()
+
+def find_orphans():
+
+    questions_models = models.survey_models.Questions.objects.using('survey').values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+    print questions_models.count()
+
+    for question in questions_models:
+        question_id = question['qid']
+        question_id = question_id.strip()
+
+        question_response_link_models = models.survey_models.QuestionsResponsesLink.objects.using('survey').all().filter(qid__icontains=question_id).values('responseid')
+
+        question_responses = []
+        columns = []
+
+        if len(question_response_link_models):
+            question_response_models = models.survey_models.Responses.objects.using('survey').all().filter(responseid__in=question_response_link_models).values()
+
+            if question_response_models[0]['table_ids'] != u'N/A':
+
+                # print type(u'N/A'), u'N/A', type(question_response_models[0]['table_ids']), question_response_models[0]['table_ids']
+
+                # print '*' + 'N/A' + '* ' + '*' + question_response_models[0]['table_ids'] + '*'
+                #
+                # print u'N/A' == question_response_models[0]['table_ids']
+
+                try:
+                    cursor = connections['survey'].cursor()
+                    cursor.execute("select * from " + question_response_models[0]['table_ids'])
+                    ztab_tables = cursor.fetchall()
+
+                    # print ztab_tables
+
+                    for question_response_model in ztab_tables:
+                        question_responses.append(question_response_model)
+
+                    # cursor.execute("select column_name from information_schema.columns where table_name = '" + question_response_models[0]['table_ids'] + "'")
+                    # column_names = cursor.fetchall()
+                    #
+                    # # print column_names
+                    #
+                    # for column_data in column_names:
+                    #     columns.append(column_data[0])
+                except Exception as e:
+                    print e
+
+        print question_id, len(question_responses)
+
+find_orphans()
+
+# find_parents()
 
 # build_ztab_table()

@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dataportal',
+    'newtables',
     'django.contrib.gis',
     # 'django_extensions',
 
@@ -98,7 +99,7 @@ WSGI_APPLICATION = 'wiserd.wsgi.application'
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+    'geoportal': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Geoportal',
         'USER': 'dataportal',
@@ -114,10 +115,15 @@ DATABASES = {
     },
     'new': {
         'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'new_tables.sqlite3'),
+    },
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'new_db.sqlite3'),
     }
 }
 
+DATABASE_ROUTERS = ['dataportal.db_router.OldDBRouter', 'newtables.db_router.NewDBRouter']
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.8/topics/i18n/

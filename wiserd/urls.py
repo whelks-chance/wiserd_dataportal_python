@@ -17,6 +17,8 @@ from django.conf.urls import include, url
 from django.contrib import admin
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from dataportal import views
+from newtables import views as v2
+
 urlpatterns = [
 
     url(r'^$', views.index, name='home'),
@@ -47,6 +49,8 @@ urlpatterns = [
 
     url(r'^metadata/survey/dublin_core/(?P<wiserd_id>\S+)', views.survey_dc_data, name='survey_dc_data'),
     url(r'^metadata/survey/questions/(?P<wiserd_id>\S+)', views.survey_questions, name='survey_questions'),
+    url(r'^metadata/survey/question/(?P<question_id>\S+)/results', views.survey_questions_results, name='survey_question_results'),
+    url(r'^metadata/survey/question/(?P<question_id>\S+)/result_table', views.survey_questions_results_table, name='survey_question_result_table'),
     url(r'^metadata/survey/(?P<wiserd_id>\S+)', views.survey_metadata, name='survey_metadata'),
 
     url(r'^spatial_search', views.spatial_search, name='spatial_search'),
@@ -55,6 +59,8 @@ urlpatterns = [
 
     url(r'^metadata/search/survey/questions/(?P<search_terms>\S+)',
         views.search_survey_question, name='search_survey_question'),
+
+    url(r'^newdb', v2.newdb, name='newdb'),
 
     url(r'^admin/', include(admin.site.urls)),
 

@@ -40,30 +40,30 @@
                             {'data': 'qid'},
                             {'data': 'literal_question_text'},
                             {'data': 'questionnumber'},
-{#                            {'data': 'thematic_groups'},#}
-{#                            {'data': 'thematic_tags'},#}
+                            {#                            {'data': 'thematic_groups'},#}
+                            {#                            {'data': 'thematic_tags'},#}
                             {'data': 'link_from'},
                             {'data': 'subof'},
                             {'data': 'type'},
-{#                            {'data': 'variableid'},#}
+                            {#                            {'data': 'variableid'},#}
                             {'data': 'notes'},
-{#                            {'data': 'user_id'},#}
-{#                            {'data': 'created'},#}
-{#                            {'data': 'updated'}#}
+                            {#                            {'data': 'user_id'},#}
+                            {#                            {'data': 'created'},#}
+                            {#                            {'data': 'updated'}#}
                         ]
                     }
-{#                    {#}
-{#                        'title': 'Results',#}
-{#                        'style': 'table',#}
-{#                        'id': 'results_tab_' + dialogID,#}
-{#                        'url': '/get_metadata',#}
-{#                        'columns': [#}
-{#                            {data: "a"},#}
-{#                            {data: "b"},#}
-{#                            {data: "c"},#}
-{#                            {data: "d"}#}
-{#                        ]#}
-{#                    }#}
+                    {#                    {#}
+                    {#                        'title': 'Results',#}
+                    {#                        'style': 'table',#}
+                    {#                        'id': 'results_tab_' + dialogID,#}
+                    {#                        'url': '/get_metadata',#}
+                    {#                        'columns': [#}
+                    {#                            {data: "a"},#}
+                    {#                            {data: "b"},#}
+                    {#                            {data: "c"},#}
+                    {#                            {data: "d"}#}
+                    {#                        ]#}
+                    {#                    }#}
                 ]
             };
 
@@ -92,7 +92,7 @@
                 }
                 if (tabData.style == 'form') {
                     var dataContent = "<form id='data_" + tabData.id + "' class='form form-horizontal well' style='padding: 0; height: 100%'>";
-{#                    dataContent += "<div>{0}</div>".format(tabData.id);#}
+                    {#                    dataContent += "<div>{0}</div>".format(tabData.id);#}
                     for (var m = 0; m < tabData.fields.length; m++) {
                         dataContent += ('<div class="control-group">' +
                         '<label for="text_input_{0}_{4}" class="control-label col-sm-6">{1}</label>' +
@@ -119,12 +119,12 @@
                 height: window.innerHeight * 0.8,
                 width: window.innerWidth * 0.8,
                 buttons: {
-{#                    Close: function() {#}
-{#                        $(this).remove(); #}
-{#                    }#}
+                    {#                    Close: function() {#}
+                    {#                        $(this).remove(); #}
+                    {#                    }#}
                 },
                 close: function() {
-                              $(this).remove();
+                    $(this).remove();
                 }
             };
 
@@ -163,7 +163,7 @@
                                     d.table = tabData2.id
                                 },
                                 dataSrc: function ( json ) {
-{#                                    console.log(json['search_result_data']);#}
+                                    {#                                    console.log(json['search_result_data']);#}
                                     return json['search_result_data'];
                                 }
                             },
@@ -406,10 +406,15 @@
                 {#                tabul.addClass('ui-dialog-titlebar');#}
             };
 
-
+            $("#menu-toggle").click(function(e) {
+                e.preventDefault();
+                $("#wrapper").toggleClass("toggled");
+            });
         });
 
     </script>
+
+
 
 
     <div id="map" style="height: 180px;"></div>
@@ -450,10 +455,8 @@
                 {#                <input type="submit" tabindex="-1" style="position:absolute; top:-1000px">#}
             </fieldset>
         </form>
+
+
     </div>
-
-
-
-
 {% endblock %}
 
