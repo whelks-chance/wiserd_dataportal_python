@@ -98,22 +98,32 @@ WSGI_APPLICATION = 'wiserd.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.8/ref/settings/#databases
 
+
+DB_PASSWORD = 'password'
+
 DATABASES = {
     'geoportal': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Geoportal',
         'USER': 'dataportal',
-        'PASSWORD': 'd4t4p0rtalacce55',
+        'PASSWORD': DB_PASSWORD,
         'HOST': 'localhost'
     },
     'survey': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'Survey_Data',
         'USER': 'dataportal',
-        'PASSWORD': 'd4t4p0rtalacce55',
+        'PASSWORD': DB_PASSWORD,
         'HOST': 'localhost'
     },
     'new': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'NewSurvey',
+        'USER': 'dataportal',
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'localhost'
+    },
+    'new2': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': os.path.join(BASE_DIR, 'new_tables.sqlite3'),
     },
@@ -155,3 +165,8 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 )
+
+try:
+    from wiserd.settings_local import *
+except ImportError:
+    pass
