@@ -7,8 +7,12 @@ from newtables import models
 
 
 def newdb(request):
-    a = models.NewSurvey.objects.using('new').all().values('surveyid')
+    b = models.Survey.objects.using('new').all().values('surveyid')
 
+    a = []
+
+    for c in b:
+        a.append(c)
 
     api_data = {'hi': 'ok',
                 'a': a

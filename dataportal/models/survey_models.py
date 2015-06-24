@@ -236,7 +236,7 @@ class SpatialRefSys(models.Model):
 
 
 class Survey(models.Model):
-    surveyid = models.CharField(max_length=255)
+    surveyid = models.CharField(primary_key=True, max_length=255)
     identifier = models.CharField(max_length=50)
     survey_title = models.TextField(blank=True, null=True)
     datacollector = models.CharField(max_length=50, blank=True, null=True)

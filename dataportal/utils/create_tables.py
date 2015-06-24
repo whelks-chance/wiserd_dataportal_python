@@ -5,6 +5,7 @@ from django.db import connections
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wiserd.settings")
 
 from dataportal import models
+from newtables import models as new_models
 
 __author__ = 'ubuntu'
 
@@ -183,7 +184,42 @@ def find_orphans():
 
         print question_id, len(question_responses)
 
-find_orphans()
+
+def find_surveys():
+
+    survey_model_ids = models.survey_models.Survey.objects.using('survey').all().values()[:1]
+
+    print survey_model_ids
+
+    for s in survey_model_ids:
+        clean_sid = s['surveyid'].strip().lower()
+
+        new_survey, created = new_models.Survey.objects.using('new').get_or_create(surveyid=clean_sid)
+        # new_survey.surveyid = clean_sid
+        new_survey.survey_title = s['survey_title']
+        new_survey.save(using='new')
+
+        print s
+
+        survey_question_link_models = models.survey_models.SurveyQuestionsLink.objects.using('survey').all().filter(surveyid=s['surveyid']).values_list('qid', flat=True)
+
+        for ql in survey_question_link_models:
+
+            print ql
+
+            questions_models = models.survey_models.Questions.objects.using('survey').filter(qid=ql).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+
+            for q in questions_models:
+                print q
+
+                new_question = new_models.Question()
+                new_question.qid = q['qid']
+                new_question.survey = new_survey
+                new_question.save(using='new')
+
+find_surveys()
+
+# find_orphans()
 
 # find_parents()
 

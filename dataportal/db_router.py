@@ -29,10 +29,12 @@ class OldDBRouter(object):
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
-        """
-        Allow relations if a model in the auth app is involved.
-        """
-        if obj1._meta.app_label == 'dataportal' or \
+
+        print obj1, obj2, '*****2'
+        # """
+        # Allow relations if a model in the auth app is involved.
+        # """
+        if obj1._meta.app_label == 'dataportal' and \
            obj2._meta.app_label == 'dataportal':
            return True
         return None

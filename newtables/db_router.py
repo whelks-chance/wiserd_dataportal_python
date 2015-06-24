@@ -1,3 +1,5 @@
+from django.db import router
+
 __author__ = 'ubuntu'
 
 
@@ -38,9 +40,16 @@ class NewDBRouter(object):
         """
         Allow relations if a model in the auth app is involved.
         """
-        if obj1._meta.app_label == 'new' or \
-           obj2._meta.app_label == 'new':
-           return True
+
+        print obj1, obj2, '*****2'
+
+        # print obj1._meta.app_label, obj1._meta.object_name, '***'
+        # print obj2._meta.app_label, obj2._meta.object_name, '***\n'
+        #
+        if obj1._meta.app_label == 'new' or obj2._meta.app_label == 'new':
+            print obj1._meta.app_label + '****************'
+            return True
+
         return None
 
     def allow_migrate(self, db, app_label, model=None, **hints):
@@ -57,7 +66,9 @@ class NewDBRouter(object):
         # """
 
         # print app_label, db, model
-        if app_label == 'newtables':
-            # print app_label, db, db == 'new', model._meta.object_name, '\n'
+        if app_label == 'newtables' or app_label == 'sites':
+            # if db == 'new':
+            #     print app_label, model._meta.object_name, '\n'
+
             return db == 'new'
         return None
