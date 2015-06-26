@@ -9,6 +9,8 @@ from newtables import models as new_models
 
 __author__ = 'ubuntu'
 
+import django
+django.setup()
 
 def build_ztab_table():
 
@@ -185,7 +187,52 @@ def find_orphans():
         print question_id, len(question_responses)
 
 
+def clean_str(input):
+    return str(input or '').strip()
+
+
+def make_freqs():
+    survey_frequecy_models = models.survey_models.SurveyFrequency.objects.using('survey').all().values()
+    for f in survey_frequecy_models:
+        freq_id = clean_str(f['svyfreqid'])
+        new_survey_freq, created = new_models.SurveyFrequency.objects.using('new').get_or_create(svyfreqid=freq_id)
+        if created:
+            new_survey_freq.svy_frequency_title = clean_str(f['svy_frequency_title'])
+            new_survey_freq.svy_frequency_description = clean_str(f['svy_frequency_description'])
+            new_survey_freq.save(using='new')
+        else:
+            print 'already has ' + freq_id
+
+
+def make_q_types():
+    question_types = models.survey_models.QType.objects.using('survey').all().values()
+    for f in question_types:
+        q_type_id = clean_str(f['q_typeid'])
+        new_question_types, created = new_models.QType.objects.using('new').get_or_create(q_typeid=q_type_id)
+        if created:
+            new_question_types.q_type_text = clean_str(f['q_type_text'])
+            new_question_types.q_typedesc = clean_str(f['q_typedesc'])
+            new_question_types.save(using='new')
+        else:
+            print 'already has ' + q_type_id
+
+
+def make_users():
+    users = models.survey_models.UserDetails.objects.using('survey').all().values()
+    for f in users:
+        user_id = clean_str(f['user_id'])
+        new_user, created = new_models.UserDetail.objects.using('new').get_or_create(user_id=user_id)
+        if created:
+            new_user.user_name = clean_str(f['user_name'])
+            new_user.user_email = clean_str(f['user_email'])
+            new_user.save(using='new')
+        else:
+            print 'already has ' + user_id
+
+
 def find_surveys():
+
+    fails = []
 
     survey_model_ids = models.survey_models.Survey.objects.using('survey').all().values()[:1]
 
@@ -195,9 +242,50 @@ def find_surveys():
         clean_sid = s['surveyid'].strip().lower()
 
         new_survey, created = new_models.Survey.objects.using('new').get_or_create(surveyid=clean_sid)
-        # new_survey.surveyid = clean_sid
-        new_survey.survey_title = s['survey_title']
-        new_survey.save(using='new')
+
+        if created:
+            frequency = new_models.SurveyFrequency.objects.using('new').get(survey_frequency_description=s['svy_frequency_description'].strip())
+
+            new_survey.frequency = frequency
+
+            # new_survey.surveyid = clean_str(s['surveyid'])
+            new_survey.identifier = clean_str(s['identifier'])
+            new_survey.survey_title = clean_str(s['survey_title'])
+            new_survey.datacollector = clean_str(s['datacollector'])
+
+            new_survey.collectionstartdate = s['collectionstartdate']
+            new_survey.collectionenddate = s['collectionenddate']
+
+            new_survey.moc_description = clean_str(s['moc_description'])
+            new_survey.samp_procedure = clean_str(s['samp_procedure'])
+            new_survey.collectionsituation = clean_str(s['collectionsituation'])
+            new_survey.surveyfrequency = clean_str(s['surveyfrequency'])
+
+            new_survey.surveystartdate = s['surveystartdate']
+            new_survey.surveyenddate = s['surveyenddate']
+
+            new_survey.des_weighting = clean_str(s['des_weighting'])
+            new_survey.samplesize = clean_str(s['samplesize'])
+            new_survey.responserate = clean_str(s['responserate'])
+            new_survey.descriptionofsamplingerror = clean_str(s['descriptionofsamplingerror'])
+            new_survey.dataproduct = clean_str(s['dataproduct'])
+            new_survey.dataproductid = clean_str(s['dataproductid'])
+            new_survey.location = clean_str(s['location'])
+            new_survey.link = clean_str(s['link'])
+            new_survey.notes = clean_str(s['notes'])
+            new_survey.user_id = clean_str(s['user_id'])
+
+            new_survey.created = s['created']
+            new_survey.updated = s['updated']
+
+            new_survey.long = clean_str(s['long'])
+            new_survey.short_title = clean_str(s['short_title'])
+            new_survey.spatialdata = (s['spatialdata'] == 'y')
+            new_survey.survey_title = clean_str(s['survey_title'])
+
+            new_survey.save(using='new')
+        else:
+            print 'already has survey ' + clean_sid
 
         print s
 
@@ -211,13 +299,41 @@ def find_surveys():
 
             for q in questions_models:
                 print q
+                clean_q = q['qid'].strip().lower()
 
-                new_question = new_models.Question()
-                new_question.qid = q['qid']
-                new_question.survey = new_survey
-                new_question.save(using='new')
+                new_question, q_created = new_models.Question.objects.using('new').get_or_create(qid=clean_q, survey=new_survey)
+                if q_created:
 
-find_surveys()
+                    try:
+                        q_type = new_models.QType.objects.using('new').get(q_type_text= clean_str(q['type']))
+                        user = new_models.UserDetail.objects.using('new').get(user_id= clean_str(q['user_id']))
+
+                        new_question.literal_question_text = clean_str(q['literal_question_text'])
+
+                        new_question.questionnumber = q['questionnumber']
+                        new_question.thematic_groups = q['thematic_groups']
+                        new_question.thematic_tags = q['thematic_tags']
+                        # new_question.link_from = q['link_from']
+                        # new_question.subof = q['subof']
+                        new_question.type = q_type
+                        new_question.variableid = q['variableid']
+                        new_question.notes = q['notes']
+                        new_question.user_id = user
+                        new_question.created = q['created']
+
+                        new_question.save(using='new')
+                    except Exception as e:
+                        print 'failed on ' + clean_q
+                        fails.append(clean_q)
+                else:
+                    print 'already has q_ ' + clean_q
+
+    print fails
+
+make_freqs()
+make_q_types()
+make_users()
+# find_surveys()
 
 # find_orphans()
 

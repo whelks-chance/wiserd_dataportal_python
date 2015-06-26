@@ -1,7 +1,8 @@
 from __future__ import unicode_literals
 
-from djorm_pgfulltext.models import SearchManager
-from djorm_pgfulltext.fields import VectorField
+# from djorm_pgfulltext.models import SearchManager
+# from djorm_pgfulltext.fields import VectorField
+from gi.overrides.keysyms import blank
 from django.contrib.gis.db import models
 
 
@@ -14,14 +15,14 @@ class DcInfo(models.Model):
     publisher = models.CharField(max_length=255, blank=True, null=True)
     contributor = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateField(blank=True, null=True)
-    type = models.CharField(max_length=255, blank=True, null=True)
-    format = models.CharField(max_length=255, blank=True, null=True)
+    type = models.ForeignKey('DublincoreType', blank=True, null=True)
+    format = models.ForeignKey('DublincoreFormat', blank=True, null=True)
     source = models.CharField(max_length=255, blank=True, null=True)
-    language = models.CharField(max_length=50, blank=True, null=True)
+    language = models.ForeignKey('DublincoreLanguage', blank=True, null=True)
     relation = models.CharField(max_length=255, blank=True, null=True)
     coverage = models.TextField(blank=True, null=True)
     rights = models.TextField(blank=True, null=True)
-    user_id = models.CharField(max_length=25, blank=True, null=True)
+    user_id = models.ForeignKey('UserDetail', blank=True, null=True)
     created = models.DateTimeField(blank=True, null=True)
     updated = models.DateTimeField(blank=True, null=True)
 
@@ -77,7 +78,7 @@ class Log(models.Model):
 
 
 class QType(models.Model):
-    q_typeid = models.CharField(max_length=20)
+    q_typeid = models.CharField(unique=True, max_length=20)
     q_type_text = models.CharField(max_length=50, blank=True, null=True)
     q_typedesc = models.CharField(db_column='q_typeDesc', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
@@ -97,18 +98,26 @@ class QuestionLink(models.Model):
 class Question(models.Model):
     survey = models.ForeignKey('Survey')
     thematic_groups_set = models.ManyToManyField('ThematicGroup')
+    thematic_tags_set = models.ManyToManyField('GroupTags')
+
+    link_from_question = models.ForeignKey('Question', blank=True, null=True, related_name='link_from')
+    subof_question = models.ForeignKey('Question', blank=True, null=True, related_name='subof')
 
     qid = models.CharField(primary_key=True, max_length=300)
     literal_question_text = models.TextField(blank=True, null=True)
     questionnumber = models.CharField(max_length=300, blank=True, null=True)
     thematic_groups = models.TextField(blank=True, null=True)
     thematic_tags = models.TextField(blank=True, null=True)
-    link_from = models.CharField(max_length=50, blank=True, null=True)
-    subof = models.CharField(max_length=50, blank=True, null=True)
-    type = models.CharField(max_length=50, blank=True, null=True)
+
+    link_from_id = models.CharField(max_length=50, blank=True, null=True)
+    subof_id = models.CharField(max_length=50, blank=True, null=True)
+
+    # type = models.CharField(max_length=50, blank=True, null=True)
+    type = models.ForeignKey('QType', blank=True, null=True)
+
     variableid = models.CharField(max_length=50, blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    user_id = models.CharField(max_length=25, blank=True, null=True)
+    user_id = models.ForeignKey('UserDetail', blank=True, null=True)
     created = models.DateTimeField(blank=True, null=True)
     updated = models.DateTimeField(blank=True, null=True)
     qtext_index = models.TextField(blank=True, null=True)  # This field type is a guess.
@@ -207,6 +216,7 @@ class SpatialRefSys(models.Model):
 class Survey(models.Model):
     dublin_core = models.ForeignKey('DcInfo', blank=True, null=True)
     frequency = models.ForeignKey('SurveyFrequency', blank=True, null=True)
+    user = models.ForeignKey('UserDetail', blank=True, null=True)
 
     surveyid = models.CharField(unique=True, max_length=255)
     identifier = models.CharField(max_length=50)
@@ -229,7 +239,7 @@ class Survey(models.Model):
     location = models.TextField(blank=True, null=True)
     link = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    user_id = models.CharField(max_length=25, blank=True, null=True)
+    # user_id = models.CharField(max_length=25, blank=True, null=True)
     created = models.DateTimeField(blank=True, null=True)
     updated = models.DateTimeField(blank=True, null=True)
     long = models.TextField(blank=True, null=True)
@@ -241,7 +251,7 @@ class Survey(models.Model):
 
 
 class SurveyFrequency(models.Model):
-    svyfreqid = models.CharField(max_length=255)
+    svyfreqid = models.CharField(unique=True, max_length=255)
     svy_frequency_title = models.CharField(max_length=255, blank=True, null=True)
     svy_frequency_description = models.TextField(blank=True, null=True)
 

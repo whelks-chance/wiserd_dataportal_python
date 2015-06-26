@@ -98,7 +98,7 @@ class Log(models.Model):
 
 
 class QType(models.Model):
-    q_typeid = models.CharField(max_length=20)
+    q_typeid = models.CharField(primary_key=True, max_length=20)
     q_type_text = models.CharField(max_length=50, blank=True, null=True)
     q_typedesc = models.CharField(db_column='q_typeDesc', max_length=50, blank=True, null=True)  # Field name made lowercase.
 
@@ -270,7 +270,7 @@ class Survey(models.Model):
 
 
 class SurveyFrequency(models.Model):
-    svyfreqid = models.CharField(max_length=255)
+    svyfreqid = models.CharField(primary_key=True, max_length=255)
     svy_frequency_title = models.CharField(max_length=255, blank=True, null=True)
     svy_frequency_description = models.TextField(blank=True, null=True)
 
@@ -317,7 +317,7 @@ class ThematicGroups(models.Model):
 
 
 class UserDetails(models.Model):
-    user_id = models.CharField(max_length=25)
+    user_id = models.CharField(primary_key=True, max_length=25)
     user_name = models.CharField(max_length=50, blank=True, null=True)
     user_email = models.CharField(max_length=100, blank=True, null=True)
 
