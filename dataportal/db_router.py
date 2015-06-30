@@ -12,8 +12,12 @@ class OldDBRouter(object):
         Attempts to read auth models go to auth_db.
         """
 
+        # Leave newtables alone!
+        if model._meta.app_label == 'newtables':
+            return False
+
         if model._meta.app_label == 'dataportal':
-            print 'using new'
+            # print 'using old'
             return 'survey'
         return 'default'
 
@@ -23,14 +27,18 @@ class OldDBRouter(object):
         Attempts to write auth models go to auth_db.
         """
 
+        # Leave newtables alone!
+        if model._meta.app_label == 'newtables':
+            return False
+
         if model._meta.app_label == 'dataportal':
-            print 'using new'
+            # print 'using old'
             return 'survey'
         return 'default'
 
     def allow_relation(self, obj1, obj2, **hints):
 
-        print obj1, obj2, '*****2'
+        # print '***1'
         # """
         # Allow relations if a model in the auth app is involved.
         # """

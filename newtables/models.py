@@ -57,14 +57,23 @@ class DublincoreType(models.Model):
         db_table = 'dublincore_type'
 
 
-class GroupTags(models.Model):
-    tagid = models.CharField(max_length=20)
+class ThematicGroup(models.Model):
     tgroupid = models.CharField(max_length=20)
-    tag_text = models.CharField(max_length=20)
-    tag_description = models.CharField(max_length=20, blank=True, null=True)
+    grouptitle = models.CharField(max_length=75)
+    groupdescription = models.CharField(max_length=250)
 
     class Meta:
-        db_table = 'group_tag'
+        db_table = 'thematic_group'
+
+
+class ThematicTag(models.Model):
+    tagid = models.CharField(max_length=20)
+    thematic_group = models.ForeignKey('ThematicGroup', blank=True, null=True)
+    tag_text = models.CharField(max_length=255)
+    tag_description = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'thematic_tag'
 
 
 class Log(models.Model):
@@ -98,7 +107,7 @@ class QuestionLink(models.Model):
 class Question(models.Model):
     survey = models.ForeignKey('Survey')
     thematic_groups_set = models.ManyToManyField('ThematicGroup')
-    thematic_tags_set = models.ManyToManyField('GroupTags')
+    thematic_tags_set = models.ManyToManyField('ThematicTag')
 
     link_from_question = models.ForeignKey('Question', blank=True, null=True, related_name='link_from')
     subof_question = models.ForeignKey('Question', blank=True, null=True, related_name='subof')
@@ -282,15 +291,6 @@ class SurveySpatialLink(models.Model):
 
     class Meta:
         db_table = 'survey_spatial_link'
-
-
-class ThematicGroup(models.Model):
-    tgroupid = models.CharField(max_length=20)
-    grouptitle = models.CharField(max_length=75)
-    groupdescription = models.CharField(max_length=250)
-
-    class Meta:
-        db_table = 'thematic_group'
 
 
 class UserDetail(models.Model):

@@ -1,6 +1,6 @@
 import os
 import pprint
-from django.db import connections
+from django.db import connections, ConnectionRouter, DEFAULT_DB_ALIAS
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wiserd.settings")
 
@@ -217,6 +217,35 @@ def make_q_types():
             print 'already has ' + q_type_id
 
 
+def make_thematic_groups():
+    group = models.survey_models.ThematicGroups.objects.using('survey').all().values()
+    for g in group:
+        group_id = clean_str(g['tgroupid'])
+        new_thematic_group, created = new_models.ThematicGroup.objects.using('new').get_or_create(tgroupid=group_id)
+        if created:
+            new_thematic_group.grouptitle = clean_str(g['grouptitle'])
+            new_thematic_group.groupdescription = clean_str(g['groupdescription'])
+            new_thematic_group.save(using='new')
+        else:
+            print 'already has group' + group_id
+
+
+def make_thematic_tags():
+    group_tags = models.survey_models.GroupTags.objects.using('survey').all().values()
+    for f in group_tags:
+        tag_id = clean_str(f['tagid'])
+        new_thematic_tag, created = new_models.ThematicTag.objects.using('new').get_or_create(tagid=tag_id)
+        if created:
+            thematic_group = new_models.ThematicGroup.objects.using('new').get(tgroupid=clean_str(f['tgroupid']))
+
+            new_thematic_tag.thematic_group = thematic_group
+            new_thematic_tag.tag_text = clean_str(f['tag_text'])
+            new_thematic_tag.tag_description = clean_str(f['tag_description'])
+            new_thematic_tag.save(using='new')
+        else:
+            print 'already has ' + tag_id
+
+
 def make_users():
     users = models.survey_models.UserDetails.objects.using('survey').all().values()
     for f in users:
@@ -236,7 +265,7 @@ def find_surveys():
 
     survey_model_ids = models.survey_models.Survey.objects.using('survey').all().values()[:1]
 
-    print survey_model_ids
+    # print survey_model_ids
 
     for s in survey_model_ids:
         clean_sid = s['surveyid'].strip().lower()
@@ -245,8 +274,10 @@ def find_surveys():
 
         if created:
             frequency = new_models.SurveyFrequency.objects.using('new').get(survey_frequency_description=s['svy_frequency_description'].strip())
-
             new_survey.frequency = frequency
+
+            user = new_models.UserDetail.objects.using('new').get(user_id=s['user_id'].strip())
+            new_survey.user = user
 
             # new_survey.surveyid = clean_str(s['surveyid'])
             new_survey.identifier = clean_str(s['identifier'])
@@ -287,8 +318,6 @@ def find_surveys():
         else:
             print 'already has survey ' + clean_sid
 
-        print s
-
         survey_question_link_models = models.survey_models.SurveyQuestionsLink.objects.using('survey').all().filter(surveyid=s['surveyid']).values_list('qid', flat=True)
 
         for ql in survey_question_link_models:
@@ -298,42 +327,51 @@ def find_surveys():
             questions_models = models.survey_models.Questions.objects.using('survey').filter(qid=ql).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
 
             for q in questions_models:
-                print q
+                print '\n\n'
+                # print q
                 clean_q = q['qid'].strip().lower()
 
                 new_question, q_created = new_models.Question.objects.using('new').get_or_create(qid=clean_q, survey=new_survey)
-                if q_created:
+                if q_created or True:
 
-                    try:
-                        q_type = new_models.QType.objects.using('new').get(q_type_text= clean_str(q['type']))
-                        user = new_models.UserDetail.objects.using('new').get(user_id= clean_str(q['user_id']))
+                    # try:
+                    q_type = new_models.QType.objects.using('new').get(q_type_text= clean_str(q['type']))
+                    user = new_models.UserDetail.objects.using('new').get(user_id= clean_str(q['user_id']))
 
-                        new_question.literal_question_text = clean_str(q['literal_question_text'])
+                    new_question.thematic_groups = q['thematic_groups']
+                    new_question.thematic_tags = q['thematic_tags']
 
-                        new_question.questionnumber = q['questionnumber']
-                        new_question.thematic_groups = q['thematic_groups']
-                        new_question.thematic_tags = q['thematic_tags']
-                        # new_question.link_from = q['link_from']
-                        # new_question.subof = q['subof']
-                        new_question.type = q_type
-                        new_question.variableid = q['variableid']
-                        new_question.notes = q['notes']
-                        new_question.user_id = user
-                        new_question.created = q['created']
+                    # new_question.link_from = q['link_from']
+                    # new_question.subof = q['subof']
 
-                        new_question.save(using='new')
-                    except Exception as e:
-                        print 'failed on ' + clean_q
-                        fails.append(clean_q)
+                    new_question.literal_question_text = clean_str(q['literal_question_text'])
+                    new_question.questionnumber = clean_str(q['questionnumber'])
+                    new_question.type = q_type
+                    new_question.variableid = clean_str(q['variableid'])
+                    new_question.notes = clean_str(q['notes'])
+                    new_question.user_id = user
+                    new_question.created = q['created']
+
+                    if len(q['thematic_groups'].strip()):
+                        for tg in q['thematic_groups'].strip().split(','):
+                            tg_model = new_models.ThematicGroup.objects.using('new').get(grouptitle=tg.strip())
+                            new_question.thematic_groups_set.add(tg_model)
+                    new_question.save(using='new')
+
+                    # except Exception as e:
+                    #     print 'failed on ' + clean_q + ' ' + str(e)
+                    #     fails.append(clean_q)
                 else:
                     print 'already has q_ ' + clean_q
 
     print fails
 
-make_freqs()
-make_q_types()
-make_users()
-# find_surveys()
+# make_freqs()
+# make_q_types()
+# make_users()
+# make_thematic_groups()
+# make_thematic_tags()
+find_surveys()
 
 # find_orphans()
 

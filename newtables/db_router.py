@@ -13,12 +13,12 @@ class NewDBRouter(object):
         """
         Attempts to read auth models go to auth_db.
         """
-        print model._meta.object_name + 'bbbb'
+        # print model._meta.object_name + 'bbbb'
 
         # print model._meta, model._meta.app_label
 
         if model._meta.app_label == 'newtables':
-            print 'using new'
+            # print 'using new'
             return 'new'
         return 'default'
 
@@ -28,11 +28,12 @@ class NewDBRouter(object):
         Attempts to write auth models go to auth_db.
         """
         print model._meta.object_name + 'aaaa'
+        print model._meta.app_label + 'aaaapplabel'
 
         # print model._meta, model._meta.app_label
 
         if model._meta.app_label == 'newtables':
-            print 'using new'
+            # print 'using new'
             return 'new'
         return 'default'
 
@@ -41,20 +42,21 @@ class NewDBRouter(object):
         Allow relations if a model in the auth app is involved.
         """
 
-        print obj1, obj2, '*****2'
+        # print str(obj1._meta.__dict__) + '***2'
+        # print obj1._meta.app_label + '***2**'
 
         # print obj1._meta.app_label, obj1._meta.object_name, '***'
         # print obj2._meta.app_label, obj2._meta.object_name, '***\n'
         #
-        if obj1._meta.app_label == 'new' or obj2._meta.app_label == 'new':
-            print obj1._meta.app_label + '****************'
+        if obj1._meta.app_label == 'newtables' or obj2._meta.app_label == 'newtables':
+            # print obj1._meta.app_label + '****************'
             return True
 
         return None
 
     def allow_migrate(self, db, app_label, model=None, **hints):
 
-        # print model._meta.app_label + ' old'
+        # print model._meta.app_label + ' new'
         # print model._meta
         # print model._meta.db_table + ' old'
         # print model._meta.object_name + ' old'

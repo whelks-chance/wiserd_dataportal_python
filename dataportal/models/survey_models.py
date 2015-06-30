@@ -75,7 +75,7 @@ class DublincoreType(models.Model):
 
 
 class GroupTags(models.Model):
-    tagid = models.CharField(max_length=20)
+    tagid = models.CharField(primary_key=True, max_length=20)
     tgroupid = models.CharField(max_length=20)
     tag_text = models.CharField(max_length=20)
     tag_description = models.CharField(max_length=20, blank=True, null=True)
@@ -307,7 +307,7 @@ class SurveySpatialLink(models.Model):
 
 
 class ThematicGroups(models.Model):
-    tgroupid = models.CharField(max_length=20)
+    tgroupid = models.CharField(primary_key=True, max_length=20)
     grouptitle = models.CharField(max_length=75)
     groupdescription = models.CharField(max_length=250)
 
