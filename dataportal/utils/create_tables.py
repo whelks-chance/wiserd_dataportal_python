@@ -338,8 +338,12 @@ def find_surveys():
                     q_type = new_models.QType.objects.using('new').get(q_type_text= clean_str(q['type']))
                     user = new_models.UserDetail.objects.using('new').get(user_id= clean_str(q['user_id']))
 
-                    new_question.thematic_groups = q['thematic_groups']
-                    new_question.thematic_tags = q['thematic_tags']
+                    new_question.thematic_groups = clean_str(q['thematic_groups'])
+
+                    thematic_tags = ''
+                    if 'System.Windows' not in clean_str(q['thematic_tags']):
+                        thematic_tags = clean_str(q['thematic_tags'])
+                    new_question.thematic_tags = thematic_tags
 
                     # new_question.link_from = q['link_from']
                     # new_question.subof = q['subof']
@@ -356,6 +360,14 @@ def find_surveys():
                         for tg in q['thematic_groups'].strip().split(','):
                             tg_model = new_models.ThematicGroup.objects.using('new').get(grouptitle=tg.strip())
                             new_question.thematic_groups_set.add(tg_model)
+
+                    if len(q['thematic_tags'].strip()):
+                        for tag in q['thematic_tags'].strip().split(','):
+                            if 'System.Windows' not in tag:
+                                print '***' + tag
+                                tag_model = new_models.ThematicTag.objects.using('new').get(tag_text=tag.strip())
+                                new_question.thematic_tags_set.add(tag_model)
+
                     new_question.save(using='new')
 
                     # except Exception as e:
