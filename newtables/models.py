@@ -6,6 +6,16 @@ from gi.overrides.keysyms import blank
 from django.contrib.gis.db import models
 
 
+class GeometryColumns(models.Model):
+    f_table_catalog = models.CharField(max_length=256, blank=True, null=True)
+    f_table_schema = models.CharField(max_length=256, blank=True, null=True)
+    f_table_name = models.CharField(max_length=256, blank=True, null=True)
+    f_geometry_column = models.CharField(max_length=256, blank=True, null=True)
+    coord_dimension = models.IntegerField()
+    srid = models.IntegerField()
+    type = models.CharField(max_length=30, blank=True, null=True)
+
+
 class DcInfo(models.Model):
     identifier = models.CharField(primary_key=True, max_length=50)
     title = models.TextField(blank=True, null=True)
@@ -112,6 +122,8 @@ class Question(models.Model):
     link_from_question = models.ForeignKey('Question', blank=True, null=True, related_name='link_from')
     subof_question = models.ForeignKey('Question', blank=True, null=True, related_name='subof')
 
+    response = models.ForeignKey('Response', blank=True, null=True)
+
     qid = models.CharField(primary_key=True, max_length=300)
     literal_question_text = models.TextField(blank=True, null=True)
     questionnumber = models.CharField(max_length=300, blank=True, null=True)
@@ -161,6 +173,7 @@ class QuestionsThematicLink(models.Model):
 
 
 class ResponseType(models.Model):
+    # "responseid", "response_name", "response_description"
     responseid = models.CharField(max_length=255, blank=True, null=True)
     response_name = models.CharField(max_length=255, blank=True, null=True)
     response_description = models.TextField(blank=True, null=True)
@@ -170,9 +183,13 @@ class ResponseType(models.Model):
 
 
 class Response(models.Model):
+    # "responseid", "responsetext", "response_type", "routetype", "table_ids",
+    # "computed_var", "checks", "route_notes", "user_id", "created", "updated"
     responseid = models.CharField(primary_key=True, max_length=100)
     responsetext = models.TextField(blank=True, null=True)
-    response_type = models.CharField(max_length=255)
+    # response_type = models.CharField(max_length=255)
+
+    response_type = models.ForeignKey('ResponseType', blank=True, null=True)
     routetype = models.CharField(max_length=255, blank=True, null=True)
     table_ids = models.TextField(blank=True, null=True)
     computed_var = models.TextField(blank=True, null=True)
@@ -225,10 +242,10 @@ class SpatialRefSys(models.Model):
 class Survey(models.Model):
     dublin_core = models.ForeignKey('DcInfo', blank=True, null=True)
     frequency = models.ForeignKey('SurveyFrequency', blank=True, null=True)
-    user = models.ForeignKey('UserDetail', blank=True, null=True)
+    data_entry = models.ForeignKey('UserDetail', blank=True, null=True)
 
     surveyid = models.CharField(unique=True, max_length=255)
-    identifier = models.CharField(max_length=50)
+    identifier = models.CharField(max_length=50, blank=True, null=True)
     survey_title = models.TextField(blank=True, null=True)
     datacollector = models.CharField(max_length=50, blank=True, null=True)
     collectionstartdate = models.DateField(blank=True, null=True)
@@ -248,7 +265,7 @@ class Survey(models.Model):
     location = models.TextField(blank=True, null=True)
     link = models.TextField(blank=True, null=True)
     notes = models.TextField(blank=True, null=True)
-    # user_id = models.CharField(max_length=25, blank=True, null=True)
+    user_id = models.CharField(max_length=25, blank=True, null=True)
     created = models.DateTimeField(blank=True, null=True)
     updated = models.DateTimeField(blank=True, null=True)
     long = models.TextField(blank=True, null=True)

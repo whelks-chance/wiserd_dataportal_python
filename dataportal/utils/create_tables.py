@@ -1,5 +1,6 @@
 import os
 import pprint
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import connections, ConnectionRouter, DEFAULT_DB_ALIAS
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wiserd.settings")
@@ -11,6 +12,7 @@ __author__ = 'ubuntu'
 
 import django
 django.setup()
+
 
 def build_ztab_table():
 
@@ -125,13 +127,14 @@ def find_parents():
 
                         found_count += 1
                 else:
-                    potential_child_qid_non_decrement = qid_start + '-' + one_less_s
-                    questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid_non_decrement).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
-
-                    for parent_question in questions_parent_models:
-                        print '*-*' + parent_question['qid'].strip() + '*-*'
-
-                        found_count += 1
+                    pass
+                    # potential_child_qid_non_decrement = qid_start + '-' + one_less_s
+                    # questions_parent_models = models.survey_models.Questions.objects.using('survey').filter(qid__startswith=potential_child_qid_non_decrement).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
+                    #
+                    # for parent_question in questions_parent_models:
+                    #     print '*-*' + parent_question['qid'].strip() + '*-*'
+                    #
+                    #     found_count += 1
 
 
                 print '\n'
@@ -174,21 +177,34 @@ def find_orphans():
                     for question_response_model in ztab_tables:
                         question_responses.append(question_response_model)
 
-                    # cursor.execute("select column_name from information_schema.columns where table_name = '" + question_response_models[0]['table_ids'] + "'")
-                    # column_names = cursor.fetchall()
-                    #
-                    # # print column_names
-                    #
-                    # for column_data in column_names:
-                    #     columns.append(column_data[0])
+                        # cursor.execute("select column_name from information_schema.columns where table_name = '" + question_response_models[0]['table_ids'] + "'")
+                        # column_names = cursor.fetchall()
+                        #
+                        # # print column_names
+                        #
+                        # for column_data in column_names:
+                        #     columns.append(column_data[0])
                 except Exception as e:
                     print e
 
         print question_id, len(question_responses)
 
 
-def clean_str(input):
-    return str(input or '').strip()
+def clean_str(text_input):
+    if text_input is None:
+        return None
+    if len(text_input.strip()) < 1:
+        return ''
+    else:
+        try:
+            cleaned = text_input.strip().replace(u"\u2018", "'").replace(u"\u2019", "'")
+            return cleaned
+        except Exception as ex:
+            print '\n******'
+            print text_input
+            print ex
+            print '******\n'
+            raise ex
 
 
 def make_freqs():
@@ -215,6 +231,31 @@ def make_q_types():
             new_question_types.save(using='new')
         else:
             print 'already has ' + q_type_id
+
+
+def make_geometries():
+    question_types = models.survey_models.QType.objects.using('survey').all().values()
+    for f in question_types:
+        q_type_id = clean_str(f['q_typeid'])
+        new_question_types, created = new_models.QType.objects.using('new').get_or_create(q_typeid=q_type_id)
+        if created:
+            new_question_types.q_type_text = clean_str(f['q_type_text'])
+            new_question_types.q_typedesc = clean_str(f['q_typedesc'])
+            new_question_types.save(using='new')
+        else:
+            print 'already has ' + q_type_id
+
+def make_response_types():
+    response_types = models.survey_models.ResponseType.objects.using('survey').all().values()
+    for f in response_types:
+        responseid = clean_str(f['responseid'])
+        new_response_types, created = new_models.ResponseType.objects.using('new').get_or_create(responseid=responseid)
+        if created or overwrite == True:
+            new_response_types.response_name = clean_str(f['response_name'])
+            new_response_types.response_description = clean_str(f['response_description'])
+            new_response_types.save(using='new')
+        else:
+            print 'already has ' + responseid
 
 
 def make_thematic_groups():
@@ -259,21 +300,70 @@ def make_users():
             print 'already has ' + user_id
 
 
+def find_response():
+    responses = models.survey_models.Responses.objects.using('survey').all().values()
+    for f in responses:
+        responseid = clean_str(f['responseid'])
+        new_response, created = new_models.Response.objects.using('new').get_or_create(responseid=responseid)
+        if created or overwrite:
+
+            try:
+                response_type = new_models.ResponseType.objects.using('new').get(response_name=f['response_type'].strip())
+                new_response.response_type = response_type
+            except:
+                print '\n Error with response_type'
+                print f
+                pass
+
+            user = new_models.UserDetail.objects.using('new').get(user_id=f['user_id'].strip())
+            new_response.user = user
+
+            new_response.responsetext = clean_str(f['responsetext'])
+            new_response.routetype = clean_str(f['routetype'])
+            new_response.table_ids = clean_str(f['table_ids'])
+            new_response.computed_var = clean_str(f['computed_var'])
+            new_response.checks = clean_str(f['checks'])
+            new_response.route_notes = clean_str(f['route_notes'])
+            new_response.created = f['created']
+            new_response.updated = f['updated']
+
+            new_response.save(using='new')
+
+            try:
+                question_link = models.survey_models.QuestionsResponsesLink.objects.using('survey').get(responseid=f['responseid'])
+            except:
+                print 'qrl ' + f['responseid']
+
+            try:
+                question_model = new_models.Question.objects.using('new').get(qid=question_link.qid)
+                question_model.response = new_response
+                question_model.save(using='new')
+            except ObjectDoesNotExist as odne:
+                print 'odne ' + responseid + str(odne)
+
+        else:
+            print 'already has response ' + responseid
+
+
 def find_surveys():
 
-    fails = []
+    fails = {}
+    sub_errors = []
+    link_from_errors = []
 
-    survey_model_ids = models.survey_models.Survey.objects.using('survey').all().values()[:1]
+    survey_model_ids = models.survey_models.Survey.objects.using('survey').all().values()[:4]
 
     # print survey_model_ids
 
     for s in survey_model_ids:
+
         clean_sid = s['surveyid'].strip().lower()
+        print '*_sid_*' + str(clean_sid)
 
         new_survey, created = new_models.Survey.objects.using('new').get_or_create(surveyid=clean_sid)
 
-        if created:
-            frequency = new_models.SurveyFrequency.objects.using('new').get(survey_frequency_description=s['svy_frequency_description'].strip())
+        if created or overwrite:
+            frequency = new_models.SurveyFrequency.objects.using('new').get(svy_frequency_title=s['surveyfrequency'].strip())
             new_survey.frequency = frequency
 
             user = new_models.UserDetail.objects.using('new').get(user_id=s['user_id'].strip())
@@ -305,6 +395,7 @@ def find_surveys():
             new_survey.link = clean_str(s['link'])
             new_survey.notes = clean_str(s['notes'])
             new_survey.user_id = clean_str(s['user_id'])
+            new_survey.data_entry = user
 
             new_survey.created = s['created']
             new_survey.updated = s['updated']
@@ -322,8 +413,6 @@ def find_surveys():
 
         for ql in survey_question_link_models:
 
-            print ql
-
             questions_models = models.survey_models.Questions.objects.using('survey').filter(qid=ql).values("qid", "literal_question_text", "questionnumber", "thematic_groups", "thematic_tags", "link_from", "subof", "type", "variableid", "notes", "user_id", "created", "updated", "qtext_index")
 
             for q in questions_models:
@@ -332,9 +421,8 @@ def find_surveys():
                 clean_q = q['qid'].strip().lower()
 
                 new_question, q_created = new_models.Question.objects.using('new').get_or_create(qid=clean_q, survey=new_survey)
-                if q_created or True:
+                if q_created or overwrite:
 
-                    # try:
                     q_type = new_models.QType.objects.using('new').get(q_type_text= clean_str(q['type']))
                     user = new_models.UserDetail.objects.using('new').get(user_id= clean_str(q['user_id']))
 
@@ -345,8 +433,8 @@ def find_surveys():
                         thematic_tags = clean_str(q['thematic_tags'])
                     new_question.thematic_tags = thematic_tags
 
-                    # new_question.link_from = q['link_from']
-                    # new_question.subof = q['subof']
+                    new_question.link_from_id = clean_str(q['link_from']).lower()
+                    new_question.subof_id = clean_str(q['subof']).lower()
 
                     new_question.literal_question_text = clean_str(q['literal_question_text'])
                     new_question.questionnumber = clean_str(q['questionnumber'])
@@ -364,26 +452,117 @@ def find_surveys():
                     if len(q['thematic_tags'].strip()):
                         for tag in q['thematic_tags'].strip().split(','):
                             if 'System.Windows' not in tag:
-                                print '***' + tag
                                 tag_model = new_models.ThematicTag.objects.using('new').get(tag_text=tag.strip())
                                 new_question.thematic_tags_set.add(tag_model)
 
                     new_question.save(using='new')
 
-                    # except Exception as e:
-                    #     print 'failed on ' + clean_q + ' ' + str(e)
-                    #     fails.append(clean_q)
+                    res_id = ''
+                    try:
+                        question_link = models.survey_models.QuestionsResponsesLink.objects.using('survey').get(qid=q['qid'])
+                        res_id = question_link.responseid
+                        print question_link.qid, question_link.responseid
+                    except ObjectDoesNotExist as odne:
+                        print 'cant find res *' + q['qid'] + '*'
+                        try:
+                            question_link = models.survey_models.QuestionsResponsesLink.objects.using('survey').get(qid__icontains=clean_str(q['qid']).lower())
+                            res_id = question_link.responseid
+                            print question_link.qid, question_link.responseid
+                        except ObjectDoesNotExist as odne1:
+                            print 'cant find res icontains *' + clean_str(q['qid']) + '*'
+
+                    if len(res_id) < 1:
+                        res_id = str('resid_' + q['qid'].strip())
+                    res_id = clean_str(res_id)
+
+                    # print len(q['qid']), len(clean_str(q['qid']))
+                    # print '#resid_qid_eibselfea1992introi' + '# is like #' + res_id + '#'
+                    # for a in range( 0, len('resid_qid_eibselfea1992introi')):
+                    #     b = 'resid_qid_eibselfea1992introi'
+                    #
+                    #     print ord(b[a]), ord(res_id[a])
+                    # print 'resid_qid_eibselfea1992introi' == res_id
+
+                    try:
+                        old_response_list = models.survey_models.Responses.objects.using('survey').filter(responseid__icontains=res_id).values()
+                        # print old_response_list.query
+                        # print old_response_list
+                        old_response = old_response_list[0]
+                    except Exception as e43243:
+                        print e43243
+                        print old_response_list
+                        print clean_q, res_id
+
+                    responseid = clean_str(res_id)
+                    new_response, created = new_models.Response.objects.using('new').get_or_create(responseid=responseid)
+                    if created or overwrite:
+                        try:
+                            res_type_name = clean_str(old_response['response_type'])
+                            response_type = new_models.ResponseType.objects.using('new').get(response_name=res_type_name)
+                            new_response.response_type = response_type
+                        except:
+                            print 'no restype for ' + old_response['response_type'] + ' on ' + old_response['responseid']
+
+                        user = new_models.UserDetail.objects.using('new').get(user_id=clean_str(old_response['user_id']))
+                        new_response.user = user
+
+                        new_response.responsetext = clean_str(old_response['responsetext'])
+                        new_response.routetype = clean_str(old_response['routetype'])
+                        new_response.table_ids = clean_str(old_response['table_ids'])
+                        new_response.computed_var = clean_str(old_response['computed_var'])
+                        new_response.checks = clean_str(old_response['checks'])
+                        new_response.route_notes = clean_str(old_response['route_notes'])
+                        new_response.created = old_response['created']
+                        new_response.updated = old_response['updated']
+
+                        new_response.save(using='new')
+
+                    new_question.response = new_response
+                    new_question.save(using='new')
                 else:
                     print 'already has q_ ' + clean_q
 
+        questions_models_again = new_models.Question.objects.using('new')
+        for qma in questions_models_again:
+            # print qma.link_from_id
+            if qma.link_from_id is not None:
+                from_question_models = new_models.Question.objects.using('new').filter(qid=clean_str(qma.link_from_id))
+                if from_question_models.count() > 0:
+                    qma.link_from_question = from_question_models[0]
+                    qma.save(using="new")
+                else:
+                    print 'cant find link from ' + str(qma.link_from_id)
+                    link_from_errors.append(qma.link_from_id)
+
+            # print qma.subof_id
+            if qma.subof_id != 'n/a' and qma.subof_id is not None:
+                subof_question_models = new_models.Question.objects.using('new').filter(qid=clean_str(qma.subof_id))
+                if subof_question_models.count() > 0:
+                    qma.subof_question = subof_question_models[0]
+                    qma.save(using="new")
+                else:
+                    print str(qma.qid) + ' cant find parent, it is sub_of ' + str(qma.subof_id)
+                    sub_errors.append(qma.subof_id)
+
+    fails['link_from_errors'] = link_from_errors
+    fails['sub_errors'] = sub_errors
     print fails
+
+overwrite = True
 
 # make_freqs()
 # make_q_types()
 # make_users()
 # make_thematic_groups()
 # make_thematic_tags()
+# make_response_types()
+
+res_id = 'resid_qid_eibselfea1992introi'
+old_response_list = models.survey_models.Responses.objects.using('survey').filter(responseid__icontains=res_id).values()
+print old_response_list[0]['responseid']
+
 find_surveys()
+# find_response()
 
 # find_orphans()
 

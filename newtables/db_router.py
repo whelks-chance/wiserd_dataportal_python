@@ -27,8 +27,8 @@ class NewDBRouter(object):
         """
         Attempts to write auth models go to auth_db.
         """
-        print model._meta.object_name + 'aaaa'
-        print model._meta.app_label + 'aaaapplabel'
+        # print model._meta.object_name + 'aaaa'
+        # print model._meta.app_label + 'aaaapplabel'
 
         # print model._meta, model._meta.app_label
 
